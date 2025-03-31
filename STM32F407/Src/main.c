@@ -19,11 +19,12 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "tim.h"
+#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "stdio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -56,7 +57,28 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+// Global variables to store the distance 
+float distance = 0.0f;
 
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  if(GPIO_Pin == SonicSensor_Echo_Pin) {
+    static uint32_t start_time = 0;
+    // Read the value of the pin 
+    int8_t echo = HAL_GPIO_ReadPin(SonicSensor_Echo_GPIO_Port, SonicSensor_Echo_Pin);
+    if (echo){
+      // Save the start time
+      start_time = HAL_GetTick();
+    } else {
+      // Save the end time
+      uint32_t duration = HAL_GetTick() - start_time;
+      // Calculate distance in cm
+      distance = (duration * 340)/100/2;
+    }
+  } else {
+      __NOP();
+  }
+}
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
@@ -118,10 +140,14 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM6_Init();
   MX_TIM4_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
+  // Test the UART
+  HAL_UART_Transmit(&huart2, (uint8_t *)"Hello World\r\n", 13, HAL_MAX_DELAY);
+
+
   HAL_TIM_Base_Start_IT(&htim6);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
-
   
   
   /* USER CODE END 2 */
@@ -131,7 +157,11 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
+    // write the distance to the UART
+    char buffer[50];
+    int len = snprintf(buffer, sizeof(buffer), "Distance: %f cm\r\n", distance);
+    HAL_UART_Transmit(&huart2, (uint8_t *)buffer, len, HAL_MAX_DELAY);
+    HAL_Delay(1000);
     /* USER CODE BEGIN 3 */
     
   }
@@ -155,11 +185,12 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLM = 4;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLM = 8;
   RCC_OscInitStruct.PLL.PLLN = 168;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 7;
