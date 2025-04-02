@@ -26,24 +26,5 @@
 			"#endif // ${TM_FILENAME_BASE/(.*)/${1:/upcase}/}_H"
 		],
 		"description": "Header guard for .h files"
-	},
-	"Active Object (C header)": {
-		"prefix": "active-object-h",
-		"scope": "c,cpp",
-		"body": [
-			"#ifndef ${TM_FILENAME_BASE/(.*)/${1:/upcase}/}_H",
-			"#define ${TM_FILENAME_BASE/(.*)/${1:/upcase}/}_H",
-			"",
-			"#include <pthread.h>",
-			"#include <mqueue.h>",
-			"",
-			"typedef struct ${TM_FILENAME_BASE/(\\w)(.*)/${1:/upcase}${2:/downcase}/}_s ${TM_FILENAME_BASE/(\\w)(.*)/${1:/upcase}${2:/downcase}/};",
-			"",
-			"extern ${TM_FILENAME_BASE/(\\w)(.*)/${1:/upcase}${2:/downcase}/} *${TM_FILENAME_BASE/(\\w)(.*)/${1:/upcase}${2:/downcase}/}_new(void);",
-			"extern void ${TM_FILENAME_BASE/(\\w)(.*)/${1:/upcase}${2:/downcase}/}_free(${TM_FILENAME_BASE/(\\w)(.*)/${1:/upcase}${2:/downcase}/} *this);",
-			"",
-			"#endif // ${TM_FILENAME_BASE/(.*)/${1:/upcase}/}_H"
-		],
-		"description": "Header for active object in C"
 	}
 }
