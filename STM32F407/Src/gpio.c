@@ -91,5 +91,73 @@ void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 2 */
+typedef struct {
+  uint16_t GPIO_Pin;
+  GPIO_EXTICallback callback;
+} GPIO_EXTICallbackStruct;
+
+static GPIO_EXTICallbackStruct gpio_callbacks[MAX_GPIO_EXTI_CALLBACKS];
+static int gpio_callback_count = 0;
+
+/**
+ * @brief Register a callback for a specific GPIO EXTI pin.
+ * 
+ * @param callback 
+ * @param GPIO_Pin 
+ */
+void GPIO_RegisterGPIO_EXTICallback(GPIO_EXTICallback callback, uint16_t GPIO_Pin)
+{
+  if (gpio_callback_count < MAX_GPIO_EXTI_CALLBACKS)
+  {
+    gpio_callbacks[gpio_callback_count].GPIO_Pin = GPIO_Pin;
+    gpio_callbacks[gpio_callback_count].callback = callback;
+    gpio_callback_count++;
+  }
+  else
+  {
+    // Handle error: too many callbacks registered
+    // For now, we will just ignore the new callback
+  }
+}
+
+/**
+ * @brief Unregister a specific callback for a specific GPIO EXTI pin.
+ * 
+ * @param callback 
+ * @param GPIO_Pin 
+ */
+void GPIO_UnregisterGPIO_EXTICallback(GPIO_EXTICallback callback, uint16_t GPIO_Pin)
+{
+  for (int i = 0; i < gpio_callback_count; i++)
+  {
+    if (gpio_callbacks[i].GPIO_Pin == GPIO_Pin && gpio_callbacks[i].callback == callback)
+    {
+      // Shift the remaining callbacks down
+      for (int j = i; j < gpio_callback_count - 1; j++)
+      {
+        gpio_callbacks[j] = gpio_callbacks[j + 1];
+      }
+      gpio_callback_count--;
+      break;
+    }
+  }
+}
+
+/**
+ * @brief Handle all Callbacks for the GPIO EXTI interrupts.
+ * 
+ * @param GPIO_Pin 
+ */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  for (int i = 0; i < gpio_callback_count; i++)
+  {
+    if (gpio_callbacks[i].GPIO_Pin == GPIO_Pin)
+    {
+      gpio_callbacks[i].callback();
+      break;
+    }
+  }
+}
 
 /* USER CODE END 2 */

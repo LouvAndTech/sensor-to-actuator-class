@@ -30,6 +30,8 @@ extern "C" {
 
 /* USER CODE BEGIN Includes */
 
+#define MAX_GPIO_EXTI_CALLBACKS 10
+
 /* USER CODE END Includes */
 
 /* USER CODE BEGIN Private defines */
@@ -39,6 +41,10 @@ extern "C" {
 void MX_GPIO_Init(void);
 
 /* USER CODE BEGIN Prototypes */
+
+typedef void (*GPIO_EXTICallback)(void);
+void GPIO_RegisterGPIO_EXTICallback(GPIO_EXTICallback callback, uint16_t GPIO_Pin);
+void GPIO_UnregisterGPIO_EXTICallback(GPIO_EXTICallback callback, uint16_t GPIO_Pin);
 
 /* USER CODE END Prototypes */
 

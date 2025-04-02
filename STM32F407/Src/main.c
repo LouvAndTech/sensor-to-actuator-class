@@ -25,6 +25,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stdio.h"
+#include "ultra_sonic.h"
+#include "leds.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -58,54 +60,7 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN 0 */
 
 // Global variables to store the distance 
-float distance = 0.0f;
 
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-  if(GPIO_Pin == SonicSensor_Echo_Pin) {
-    static uint32_t start_time = 0;
-    // Read the value of the pin 
-    int8_t echo = HAL_GPIO_ReadPin(SonicSensor_Echo_GPIO_Port, SonicSensor_Echo_Pin);
-    if (echo){
-      // Save the start time
-      start_time = HAL_GetTick();
-    } else {
-      // Save the end time
-      uint32_t duration = HAL_GetTick() - start_time;
-      // Calculate distance in cm
-      distance = (duration * 340)/100/2;
-    }
-  } else {
-      __NOP();
-  }
-}
-
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-  static uint8_t divider = 0;
-  if (divider == 0)
-  {
-    static uint8_t current_led = 0;
-    HAL_GPIO_WritePin(GPIOD, LD3_Pin | LD4_Pin | LD5_Pin | LD6_Pin, GPIO_PIN_RESET);
-    switch(current_led)
-    {
-      case 0:
-        HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_SET);
-        break;
-      case 1:
-        HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_SET);
-        break;
-      case 2:
-        HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
-        break;
-      case 3:
-        HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_SET);
-        break;
-    }
-    current_led = (current_led + 1) % 4;
-  }
-  divider = (divider + 1) % 1000;
-}
 
 /* USER CODE END 0 */
 
@@ -144,12 +99,11 @@ int main(void)
   /* USER CODE BEGIN 2 */
   // Test the UART
   HAL_UART_Transmit(&huart2, (uint8_t *)"Hello World\r\n", 13, HAL_MAX_DELAY);
-
-
-  HAL_TIM_Base_Start_IT(&htim6);
-  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
   
-  
+  // Initialized the LEDs
+  LEDS_Init();
+  // Initialize the ultrasonic sensor
+  ULTRA_SONIC_Init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -158,6 +112,7 @@ int main(void)
   {
     /* USER CODE END WHILE */
     // write the distance to the UART
+    float distance = ULTRA_SONIC_GetDistance();
     char buffer[50];
     int len = snprintf(buffer, sizeof(buffer), "Distance: %f cm\r\n", distance);
     HAL_UART_Transmit(&huart2, (uint8_t *)buffer, len, HAL_MAX_DELAY);

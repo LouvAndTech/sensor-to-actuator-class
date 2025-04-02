@@ -60,6 +60,12 @@ Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c \
 Src/usart.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c
 
+# User created sources
+C_SOURCES +=  \
+Src/leds.c \
+Src/ultra_sonic.c \
+
+
 # ASM sources
 ASM_SOURCES =  \
 startup_stm32f407xx.s
