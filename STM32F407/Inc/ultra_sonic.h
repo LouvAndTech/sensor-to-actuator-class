@@ -7,6 +7,7 @@ extern "C" {
 
 void ULTRA_SONIC_Init(void);
 float ULTRA_SONIC_GetDistance(void);
+void ULTRA_SONIC_test(void);
 
 #ifdef __cplusplus
 }

@@ -2,6 +2,8 @@
 #include "ultra_sonic.h"
 #include "gpio.h"
 #include "tim.h"
+#include "stdio.h"
+#include "usart.h"
 
 /* Static attribute */
 float distance = 0.0f;
@@ -20,6 +22,14 @@ void ULTRA_SONIC_Init(void)
 float ULTRA_SONIC_GetDistance(void)
 {
     return distance; 
+}
+
+void ULTRA_SONIC_test(void){
+    float distance = ULTRA_SONIC_GetDistance();
+    char buffer[50];
+    int len = snprintf(buffer, sizeof(buffer), "Distance: %f \r\n", distance);
+    HAL_UART_Transmit(&huart2, (uint8_t *)buffer, len, HAL_MAX_DELAY);
+    HAL_Delay(1000);
 }
 
 /* Private functions */

@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2025 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2025 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -27,6 +27,7 @@
 #include "stdio.h"
 #include "ultra_sonic.h"
 #include "leds.h"
+#include "servo.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -59,8 +60,7 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-// Global variables to store the distance 
-
+// Global variables to store the distance
 
 /* USER CODE END 0 */
 
@@ -96,29 +96,38 @@ int main(void)
   MX_TIM6_Init();
   MX_TIM4_Init();
   MX_USART2_UART_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   // Test the UART
   HAL_UART_Transmit(&huart2, (uint8_t *)"Hello World\r\n", 13, HAL_MAX_DELAY);
-  
+
+
   // Initialized the LEDs
   LEDS_Init();
   // Initialize the ultrasonic sensor
   ULTRA_SONIC_Init();
+  // Initialize the servo motor
+  // SERVO_Init();
+
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    /* USER CODE END WHILE */
-    // write the distance to the UART
+    // ULTRA_SONIC_test();
+
     float distance = ULTRA_SONIC_GetDistance();
-    char buffer[50];
-    int len = snprintf(buffer, sizeof(buffer), "Distance: %f cm\r\n", distance);
-    HAL_UART_Transmit(&huart2, (uint8_t *)buffer, len, HAL_MAX_DELAY);
-    HAL_Delay(1000);
+    //convert distance to a percentage (max 0 to 21)
+    uint8_t percentage = (uint8_t)(distance / 21 * 100);
+    // Set the servo motor to the percentage
+    SERVO_set_servo_percentage(percentage);
+
+    /* USER CODE END WHILE */
+
     /* USER CODE BEGIN 3 */
-    
   }
   /* USER CODE END 3 */
 }
