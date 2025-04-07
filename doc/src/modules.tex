@@ -85,3 +85,34 @@ char buffer[50];
 int len = snprintf(buffer, sizeof(buffer), "Distance: %f \r\n", distance);
 HAL_UART_Transmit(&huart2, (uint8_t *)buffer, len, HAL_MAX_DELAY);
 \end{lstlisting}
+
+\subsection{Module bouton poussoir (BUTTON)}
+Le module de gestion du bouton poussoir permet de changer le mode de fonctionnement du système. Il utilise une interruption externe pour détecter les pressions sur le bouton:
+
+Le module BUTTON gère un bouton poussoir de manière autonome en utilisant une interruption externe. Il se base sur deux variables globales principales : une variable indiquant si le bouton a été pressé et une autre mémorisant le dernier instant d’activation, ce qui est crucial pour le contrôle du rebond.
+
+\begin{enumerate}
+    \item Gestion du rebond
+    \begin{itemize}
+        \item Lorsqu'une pression sur le bouton est détectée, une interruption est générée.
+        \item La fonction de rappel vérifie si l'intervalle écoulé depuis le dernier appui dépasse un seuil (200 ms).
+        \item Si le délai n'est pas respecté, l'appui est ignoré pour éviter les faux signaux.
+    \end{itemize}
+    \item Mise à jour de l’état et communication
+    \begin{itemize}
+        \item En cas d’appui valide, la fonction de rappel met à jour la variable d’état (passant à 1).
+        \item Elle enregistre l’instant courant via un appel système (par exemple, HAL\_GetTick()).
+        \item Un message est envoyé via l’interface UART pour notifier le reste du système de l’événement.
+    \end{itemize}
+    \item Initialisation et configuration
+    \begin{itemize}
+        \item Avant d’être opérationnel, le module doit être initialisé.
+        \item Une fonction dédiée configure le bouton pour qu’il génère une interruption à chaque pression.
+        \item Elle associe le pin correspondant au bouton à la fonction de rappel, garantissant ainsi que l’appui sur le bouton déclenche automatiquement la gestion d’événement.
+    \end{itemize}
+    \item Lecture et réinitialisation de l’état
+    \begin{itemize}
+        \item Une fonction de lecture permet à d'autres parties du programme de vérifier si le bouton a été pressé.
+        \item Une fois l’événement traité, une fonction de réinitialisation remet la variable d’état à zéro pour préparer la détection de futures pressions.
+    \end{itemize}
+\end{enumerate}

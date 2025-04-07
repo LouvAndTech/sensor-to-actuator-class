@@ -13,10 +13,11 @@ Capteur ultrasonique HC-SR04      & VCC                     & Alimentation 5V \\
 Servomoteur                       & VCC                     & Alimentation 5V \\ \hline
                                   & GND                     & Masse \\ \hline
                                   & SIGNAL                  & Pin PB5 (TIM3\_CH2) - Signal PWM \\ \hline
-LEDs de signalisation             & LED bleue               & Indique le mode 1 (servo contrôlé par distance) \\ \hline
-                                  & LED verte               & Indique le mode 2 (servo contrôlé par liaison série) \\ \hline
+LEDs de signalisation             & PD15                    & Indique le mode 1 (servo contrôlé par distance) \\ \hline
+                                  & PD12                    & Indique le mode 2 (servo contrôlé par liaison série) \\ \hline
 Communication série UART          & USART2\_TX              & Pin PA2 - Transmission de données \\ \hline
                                   & USART2\_RX              & Pin PA3 - Réception de données \\ \hline
+Bouton poussoir                   & PA0\_WKUP               & Pin PA0 - Interruption externe (EXTI) \\ \hline
 \end{tabular}
 \caption{Brochage des différents éléments}
 \label{tab:brochage}

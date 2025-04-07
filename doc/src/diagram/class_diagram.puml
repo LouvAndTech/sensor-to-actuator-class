@@ -37,11 +37,19 @@ class LEDS {
     - callback_chenillar() : void
 }
 
+class Button {
+    + BUTTON_Init() : void
+    + BUTTON_test() : void
+    + BUTTON_get_state() : bool
+    + BUTTON_reset() : void
+    - callback_chenillar() : void
+}
+
 Main --> GPIO : uses
 Main --> TIM : uses
 Main --> Servo : uses
 Main --> UltraSonic : uses
 Main --> LEDS : uses
-
+Main --> Button : uses
 
 @enduml
