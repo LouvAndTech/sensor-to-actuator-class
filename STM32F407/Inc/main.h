@@ -57,8 +57,9 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define B1_Pin GPIO_PIN_0
-#define B1_GPIO_Port GPIOA
+#define Bouton_1_Pin GPIO_PIN_0
+#define Bouton_1_GPIO_Port GPIOA
+#define Bouton_1_EXTI_IRQn EXTI0_IRQn
 #define BOOT1_Pin GPIO_PIN_2
 #define BOOT1_GPIO_Port GPIOB
 #define LD4_Pin GPIO_PIN_12
@@ -76,8 +77,6 @@ void Error_Handler(void);
 #define SonicSensor_Echo_Pin GPIO_PIN_8
 #define SonicSensor_Echo_GPIO_Port GPIOB
 #define SonicSensor_Echo_EXTI_IRQn EXTI9_5_IRQn
-#define MEMS_INT2_Pin GPIO_PIN_1
-#define MEMS_INT2_GPIO_Port GPIOE
 
 /* USER CODE BEGIN Private defines */
 

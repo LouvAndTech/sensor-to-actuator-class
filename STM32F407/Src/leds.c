@@ -21,8 +21,29 @@ void callback_chenillar(void);
  */
 void LEDS_Init(void)
 {
-    RegisterTimerCallback(callback_chenillar, &htim6);
     HAL_TIM_Base_Start_IT(&htim6);
+}
+
+/**
+ * @brief Test function for the LEDs
+ * @warning This function needs to be called in init
+ */
+void LEDS_test(void)
+{
+    RegisterTimerCallback(callback_chenillar, &htim6);
+}
+
+
+void LEDS_SetBlue(void)
+{
+    HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOD, LD4_Pin | LD5_Pin | LD3_Pin, GPIO_PIN_RESET);
+}
+
+void LEDS_SetGreen(void)
+{
+    HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOD, LD3_Pin | LD5_Pin | LD6_Pin, GPIO_PIN_RESET);
 }
 
 /**
