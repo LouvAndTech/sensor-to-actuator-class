@@ -21,7 +21,7 @@ void callback_chenillar(void);
  */
 void LEDS_Init(void)
 {
-    RegisterTimerCallback(callback_chenillar, &htim6);
+    HAL_TIM_RegisterTimerCallback(callback_chenillar, &htim6);
     HAL_TIM_Base_Start_IT(&htim6);
 }
 

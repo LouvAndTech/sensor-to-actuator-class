@@ -20,7 +20,7 @@ void ULTRA_SONIC_Init(void)
 {
     // Initialize the ultrasonic sensor
     HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
-    GPIO_RegisterGPIO_EXTICallback(gpio_trigger_Callback, SonicSensor_Echo_Pin);
+    HAL_GPIO_RegisterGPIO_EXTICallback(gpio_trigger_Callback, SonicSensor_Echo_Pin);
 }
 
 /**

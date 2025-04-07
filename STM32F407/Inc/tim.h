@@ -52,8 +52,8 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 /* USER CODE BEGIN Prototypes */
 typedef void (*TimerCallback)(void);
 
-void RegisterTimerCallback(TimerCallback callback, TIM_HandleTypeDef *htim);
-void UnregisterTimerCallback(TimerCallback callback, TIM_HandleTypeDef *htim);
+void HAL_TIM_RegisterTimerCallback(TimerCallback callback, TIM_HandleTypeDef *htim);
+void HAL_TIM_UnregisterTimerCallback(TimerCallback callback, TIM_HandleTypeDef *htim);
 
 /* USER CODE END Prototypes */
 

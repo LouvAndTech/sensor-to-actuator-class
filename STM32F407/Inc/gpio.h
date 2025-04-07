@@ -43,8 +43,8 @@ void MX_GPIO_Init(void);
 /* USER CODE BEGIN Prototypes */
 
 typedef void (*GPIO_EXTICallback)(void);
-void GPIO_RegisterGPIO_EXTICallback(GPIO_EXTICallback callback, uint16_t GPIO_Pin);
-void GPIO_UnregisterGPIO_EXTICallback(GPIO_EXTICallback callback, uint16_t GPIO_Pin);
+void HAL_GPIO_RegisterGPIO_EXTICallback(GPIO_EXTICallback callback, uint16_t GPIO_Pin);
+void HAL_GPIO_UnregisterGPIO_EXTICallback(GPIO_EXTICallback callback, uint16_t GPIO_Pin);
 
 /* USER CODE END Prototypes */
 

@@ -105,7 +105,7 @@ static int gpio_callback_count = 0;
  * @param callback 
  * @param GPIO_Pin 
  */
-void GPIO_RegisterGPIO_EXTICallback(GPIO_EXTICallback callback, uint16_t GPIO_Pin)
+void HAL_GPIO_RegisterGPIO_EXTICallback(GPIO_EXTICallback callback, uint16_t GPIO_Pin)
 {
   if (gpio_callback_count < MAX_GPIO_EXTI_CALLBACKS)
   {
@@ -126,7 +126,7 @@ void GPIO_RegisterGPIO_EXTICallback(GPIO_EXTICallback callback, uint16_t GPIO_Pi
  * @param callback 
  * @param GPIO_Pin 
  */
-void GPIO_UnregisterGPIO_EXTICallback(GPIO_EXTICallback callback, uint16_t GPIO_Pin)
+void HAL_GPIO_UnregisterGPIO_EXTICallback(GPIO_EXTICallback callback, uint16_t GPIO_Pin)
 {
   for (int i = 0; i < gpio_callback_count; i++)
   {

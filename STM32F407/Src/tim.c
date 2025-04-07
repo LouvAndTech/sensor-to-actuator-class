@@ -311,7 +311,7 @@ static int callback_count = 0;
  * @param callback
  * @param htim
  */
-void RegisterTimerCallback(TimerCallback callback, TIM_HandleTypeDef *htim)
+void HAL_TIM_RegisterTimerCallback(TimerCallback callback, TIM_HandleTypeDef *htim)
 {
   if (callback_count < MAX_CALLBACKS)
   {
@@ -332,7 +332,7 @@ void RegisterTimerCallback(TimerCallback callback, TIM_HandleTypeDef *htim)
  * @param callback
  * @param htim
  */
-void UnregisterTimerCallback(TimerCallback callback, TIM_HandleTypeDef *htim)
+void HAL_TIM_UnregisterTimerCallback(TimerCallback callback, TIM_HandleTypeDef *htim)
 {
   for (int i = 0; i < callback_count; i++)
   {
