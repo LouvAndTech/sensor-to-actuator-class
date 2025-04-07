@@ -25,10 +25,12 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stdio.h"
+#include "stdlib.h"
 #include "ultra_sonic.h"
 #include "leds.h"
 #include "servo.h"
 #include "button.h"
+#include "serial.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -108,7 +110,7 @@ int main(void)
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   // Test the UART
-  HAL_UART_Transmit(&huart2, (uint8_t *)"Hello World\r\n", 13, HAL_MAX_DELAY);
+  HAL_UART_Transmit(&huart2, (uint8_t *)"Program Start :\r\n", 13, HAL_MAX_DELAY);
 
 
   // Initialized the LEDs
@@ -119,6 +121,8 @@ int main(void)
   SERVO_Init();
   // Initialize the button
   BUTTON_Init();
+  //
+  SERIAL_Init();
 
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
 
@@ -129,6 +133,9 @@ int main(void)
   while (1)
   {
     // ULTRA_SONIC_test();
+    // LEDS_test();
+    // SERVO_test();
+
     //get the current state of the button
     if (BUTTON_GetState()){
       state++;
@@ -152,19 +159,18 @@ int main(void)
       //turn on the green LED
       LEDS_SetGreen();
       //get user input to set the position of the servo motor
-      HAL_UART_Transmit(&huart2, (uint8_t *)"Enter the position of the servo motor (0-100): ", 50, HAL_MAX_DELAY);
-      char buffer[50];
-      //HAL_UART_Receive(&huart2, (uint8_t *)buffer, sizeof(buffer), HAL_MAX_DELAY);
+      SERIAL_SendString("Enter the position from 0-9 to turn the servo from 0 percent to 90 percent:\r\n");
+      SERIAL_SendString("(To exit the mode, press the button, then enter a value)\r\n");
+      char buffer[1];
+      SERIAL_receiveString(buffer, sizeof(buffer)); // Receive user input
       // Convert the input to an integer
       int position = atoi(buffer);
       // Set the servo motor to the position
-      if (position >= 0 && position <= 100)
-      {
+      if (position >= 0 && position <= 100){
         SERVO_set_servo_percentage(position);
       }
-      else
-      {
-        HAL_UART_Transmit(&huart2, (uint8_t *)"Invalid position\r\n", 18, HAL_MAX_DELAY);
+      else{
+        SERIAL_SendString("Invalid position. Please enter a value between 0 and 100.\r\n");
       }
       
       break;

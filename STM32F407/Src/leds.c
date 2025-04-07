@@ -31,7 +31,7 @@ void LEDS_Init(void)
  */
 void LEDS_test(void)
 {
-    RegisterTimerCallback(callback_chenillar, &htim6);
+    HAL_TIM_RegisterTimerCallback(callback_chenillar, &htim6);
 }
 
 

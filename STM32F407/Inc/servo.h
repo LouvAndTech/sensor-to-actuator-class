@@ -9,6 +9,7 @@ extern "C" {
 
 void SERVO_Init(void);
 void SERVO_set_servo_percentage(uint8_t percentage);
+void SERVO_test(void);
 
 #ifdef __cplusplus
 }

@@ -18,6 +18,16 @@ void SERVO_Init(void)
     __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, MIN_DUTY);
 }
 
+void SERVO_test(void)
+{
+    // Test the servo motor
+    for (uint32_t i = MIN_DUTY; i <= MAX_DUTY; i++)
+    {
+        SERVO_set_servo_percentage(i);
+        HAL_Delay(100);
+    }
+}
+
 /**
  * @brief Set the servo motor to a percentage of its range
  * 
