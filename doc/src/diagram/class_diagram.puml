@@ -45,6 +45,12 @@ class Button {
     - callback_chenillar() : void
 }
 
+class Serial{
+    + SERIAL_Init() : void
+    + SERIAL_SendString(str : const char*) : void
+    + SERIAL_receiveString(buffer : char*, size : uint16_t) : void
+}
+
 Main --> GPIO : uses
 Main --> TIM : uses
 Main --> Servo : uses
