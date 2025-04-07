@@ -28,7 +28,7 @@ void BUTTON_Callback(void)
 void BUTTON_Init(void)
 {
     // Initialiser le bouton avec un callback
-    GPIO_RegisterGPIO_EXTICallback(BUTTON_Callback, Bouton_1_Pin);
+    HAL_GPIO_RegisterGPIO_EXTICallback(BUTTON_Callback, Bouton_1_Pin);
 }
 
 /**

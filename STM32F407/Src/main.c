@@ -87,7 +87,6 @@ int main(void)
     MODE_1 = 0,
     MODE_2,
     END_MODE,
-    END_MODE,
   } State_e;
 
   State_e state = MODE_1; 
