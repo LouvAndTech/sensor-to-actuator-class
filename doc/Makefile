@@ -1,5 +1,5 @@
 LATEX = pdflatex
-PLANTUML = ../.devcontainer/plantuml.jar
+PLANTUML = java -jar ../.devcontainer/plantuml.jar
 
 SRC_DIR = src
 BUILD_DIR = build
@@ -10,6 +10,7 @@ TEXFILE = $(SRC_DIR)/main.tex
 OUTPUT = $(DIST_DIR)/main.pdf
 PLANTUML_SRC = $(wildcard $(SRC_DIR)/$(DIAGRAM_DIR)/*.puml)
 PLANTUML_OUTPUT = $(patsubst $(SRC_DIR)/$(DIAGRAM_DIR)/%.puml, $(BUILD_DIR)/$(DIAGRAM_DIR)/%.png, $(PLANTUML_SRC))
+
 
 all: $(OUTPUT)
 
@@ -24,10 +25,10 @@ $(OUTPUT): $(PLANTUML_OUTPUT) $(TEXFILE)
 	@echo "Generated PDF: $@"
 
 # PlantUML diagrams
-$(BUILD_DIR)/diagrams/%.png: $(SRC_DIR)/diagrams/%.puml
+$(PLANTUML_OUTPUT): $(PLANTUML_SRC)
 	@echo "Generating diagram: $<"
-	mkdir -p $(BUILD_DIR)/diagrams
-	$(PLANTUML) -tpng -o $(BUILD_DIR)/diagrams $<
+	mkdir -p $(BUILD_DIR)/$(DIAGRAM_DIR)
+	$(PLANTUML) -tpng -o ../../$(BUILD_DIR)/$(DIAGRAM_DIR) $<
 	@echo "Generated diagram: $@"
 
 clean:
