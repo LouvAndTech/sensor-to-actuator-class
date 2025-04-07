@@ -111,7 +111,7 @@ htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
 \end{lstlisting}
 
-Un signal PWM avec un rapport cyclique très court (Pulse = 3) est généré sur le canal 2 pour déclencher le capteur ultrasonique.
+Un signal PWM avec un rapport cyclique très court (10µs) est généré sur le canal 2 pour déclencher le capteur ultrasonique.
 
 \subsubsection{Timer pour le servomoteur (TIM3)}
 Le TIM3 est configuré pour générer un signal PWM adapté au contrôle du servomoteur:
