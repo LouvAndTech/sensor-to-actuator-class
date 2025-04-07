@@ -1,0 +1,47 @@
+@startuml class_diagram
+
+left to right direction
+
+
+class Main {
+    + main() : void
+}
+
+class GPIO <<User modified>>{
+    + HAL_GPIO_RegisterGPIO_EXTICallback(callback : GPIO_EXTICallback, GPIO_Pin : uint16_t) : void
+    + HAL_GPIO_UnregisterGPIO_EXTICallback(callback : GPIO_EXTICallback, GPIO_Pin : uint16_t) : void
+    - HAL_GPIO_EXTI_Callback(GPIO_Pin : uint16_t) : void
+}
+
+class TIM <<User modified>>{
+    + HAL_TIM_RegisterTimerCallback(callback : TimerCallback, htim : TIM_HandleTypeDef*) : void
+    + HAL_TIM_UnregisterTimerCallback(callback : TimerCallback, htim : TIM_HandleTypeDef*) : void
+    - HAL_TIM_PeriodElapsedCallback(htim : TIM_HandleTypeDef*) : void
+}
+
+class Servo {
+    + SERVO_Init() : void
+    + SERVO_set_servo_percentage(percentage : uint8_t) : void
+    - gpio_trigger_Callback() : void
+}
+
+class UltraSonic {
+    + ULTRA_SONIC_Init() : void
+    + ULTRA_SONIC_GetDistance(): float
+    + ULTRA_SONIC_test() : void
+}
+
+class LEDS {
+    + LEDS_Init() : void
+    + LEDS_test() : void
+    - callback_chenillar() : void
+}
+
+Main --> GPIO : uses
+Main --> TIM : uses
+Main --> Servo : uses
+Main --> UltraSonic : uses
+Main --> LEDS : uses
+
+
+@enduml

@@ -1,0 +1,46 @@
+\section{Informations complémentaires}
+
+\subsection{Tableau complet des connexions}
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Composant} & \textbf{Pin} & \textbf{Fonction} & \textbf{Configuration} \\
+\hline
+HC-SR04 Trigger & PB7 & Output & TIM4\_CH2 (PWM) \\
+\hline
+HC-SR04 Echo & PB8 & Input & EXTI (Rising/Falling) \\
+\hline
+Servo & PB5 & Output & TIM3\_CH2 (PWM) \\
+\hline
+LED Bleue & PA5 & Output & GPIO Push-Pull \\
+\hline
+LED Verte & PA8 & Output & GPIO Push-Pull \\
+\hline
+UART TX & PA2 & Output & USART2\_TX \\
+\hline
+UART RX & PA3 & Input & USART2\_RX \\
+\hline
+Bouton-poussoir & PC13 & Input & EXTI (Falling) \\
+\hline
+\end{tabular}
+\caption{Récapitulatif des connexions matérielles}
+\label{tab:connections}
+\end{table}
+
+\subsection{Gestion des erreurs}
+Le système intègre une gestion basique des erreurs:
+\begin{itemize}
+    \item Vérification des mesures de distance (filtrage des valeurs aberrantes)
+    \item Détection des timeouts pour le capteur ultrasonique
+    \item Validation des commandes reçues via la liaison série
+\end{itemize}
+
+\subsection{Améliorations possibles}
+Plusieurs améliorations pourraient être apportées:
+\begin{itemize}
+    \item Implémentation d'un filtre pour stabiliser les mesures de distance
+    \item Développement d'une interface utilisateur plus complète
+    \item Ajout de fonctionnalités de diagnostic et de calibration
+    \item Utilisation du DMA pour optimiser les transferts UART
+\end{itemize}

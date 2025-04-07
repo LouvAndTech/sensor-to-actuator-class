@@ -1,0 +1,75 @@
+\section{Étapes de conception et validations associées}
+
+\subsection{Mise en place du timer pour la mesure périodique}
+Première étape: configurer un timer pour déclencher des mesures toutes les 250 ms.
+
+\subsubsection{Calcul de la configuration}
+Comme détaillé précédemment, pour obtenir une période de 250 ms avec une fréquence d'horloge de 84 MHz:
+\begin{align*}
+P &= \frac{(1 + \text{counter\_period}) \times (1 + \text{prescaler})}{F} \\
+0,25 &= \frac{(1 + \text{counter\_period}) \times (1 + \text{prescaler})}{84 \times 10^6} \\
+(1 + \text{counter\_period}) \times (1 + \text{prescaler}) &= 21~000~000
+\end{align*}
+
+Nous avons choisi:
+\begin{itemize}
+    \item counter\_period = 65535
+    \item prescaler = 319
+\end{itemize}
+
+\subsubsection{Validation}
+La validation a été effectuée en vérifiant la fréquence de déclenchement des mesures avec l'oscilloscope, confirmant une période de 249,66 ms, très proche des 250 ms visés.
+
+\subsection{Développement du module HC-SR04}
+\subsubsection{Principe de fonctionnement}
+Le principe du capteur HC-SR04:
+\begin{enumerate}
+    \item Envoi d'une impulsion de 10 µs sur TRIG
+    \item Le capteur émet 8 impulsions ultrasoniques à 40 kHz
+    \item Le capteur place ECHO à l'état haut jusqu'au retour de l'onde réfléchie
+    \item La durée de l'impulsion ECHO est proportionnelle à la distance
+\end{enumerate}
+
+\subsubsection{Mise en œuvre et validation}
+\begin{itemize}
+    \item Configuration d'un signal PWM très court (Pulse = 3) pour le déclenchement
+    \item Utilisation des interruptions externes pour mesurer la durée du signal ECHO
+    \item Calcul de la distance: $\text{distance} = \frac{\text{durée} \times 340 \text{ m/s}}{2}$
+    \item Validation par comparaison avec une mesure de référence
+\end{itemize}
+
+\subsection{Développement du module servomoteur}
+\subsubsection{Principe de fonctionnement}
+Le servomoteur est contrôlé par un signal PWM de période 20 ms (50 Hz):
+\begin{itemize}
+    \item Largeur d'impulsion de 1 ms: position 0°
+    \item Largeur d'impulsion de 2 ms: position 180°
+\end{itemize}
+
+\subsubsection{Mise en œuvre et validation}
+\begin{itemize}
+    \item Configuration du TIM3 pour générer un signal PWM à 50 Hz
+    \item Implémentation d'une fonction pour convertir un pourcentage (0-100\%) en largeur d'impulsion
+    \item Validation par observation du mouvement du servomoteur
+\end{itemize}
+
+\subsection{Implémentation des modes de fonctionnement}
+\subsubsection{Mode 1: Contrôle par distance}
+Dans ce mode, la position du servomoteur est proportionnelle à la distance mesurée:
+\begin{lstlisting}[caption={Contrôle par distance}, label={lst:mode1}]
+float distance = ULTRA_SONIC_GetDistance();
+uint8_t percentage = (uint8_t)(distance / 21 * 100);
+SERVO_set_servo_percentage(percentage);
+\end{lstlisting}
+
+\subsubsection{Mode 2: Contrôle par commande série}
+Dans ce mode, la position du servomoteur est définie par une commande reçue via la liaison série.
+
+\subsection{Intégration du système complet}
+L'intégration finale a consisté à:
+\begin{itemize}
+    \item Combiner tous les modules développés
+    \item Implémenter la machine à états pour gérer les deux modes
+    \item Gérer le changement de mode par bouton-poussoir ou commande série
+    \item Transmettre périodiquement la distance mesurée
+\end{itemize}

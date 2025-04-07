@@ -21,6 +21,7 @@ void callback_chenillar(void);
  */
 void LEDS_Init(void)
 {
+
     HAL_TIM_Base_Start_IT(&htim6);
 }
 
