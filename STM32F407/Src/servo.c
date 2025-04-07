@@ -7,6 +7,10 @@
 
 /* Public functions */
 
+/**
+ * @brief Init the servo motor
+ * 
+ */
 void SERVO_Init(void)
 {
     // Initialize the servo motor
@@ -14,6 +18,11 @@ void SERVO_Init(void)
     __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, MIN_DUTY);
 }
 
+/**
+ * @brief Set the servo motor to a percentage of its range
+ * 
+ * @param percentage The percentage to set the servo motor to (0-100)
+ */
 void SERVO_set_servo_percentage(uint8_t percentage)
 {
     // Set the duty cycle based on the percentage

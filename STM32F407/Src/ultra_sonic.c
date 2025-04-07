@@ -12,6 +12,10 @@ float distance = 0.0f;
 void gpio_trigger_Callback(void);
 
 /* Public functions */
+/**
+ * @brief Initialize the ultrasonic sensor
+ * 
+ */
 void ULTRA_SONIC_Init(void)
 {
     // Initialize the ultrasonic sensor
@@ -19,11 +23,20 @@ void ULTRA_SONIC_Init(void)
     GPIO_RegisterGPIO_EXTICallback(gpio_trigger_Callback, SonicSensor_Echo_Pin);
 }
 
+/**
+ * @brief Get the distance from the ultrasonic sensor
+ * 
+ * @return float the distance in cm
+ */
 float ULTRA_SONIC_GetDistance(void)
 {
     return distance; 
 }
 
+/**
+ * @brief Test the ultrasonic sensor alone
+ * 
+ */
 void ULTRA_SONIC_test(void){
     float distance = ULTRA_SONIC_GetDistance();
     char buffer[50];
