@@ -22,17 +22,19 @@ class TIM <<User modified>>{
 class Servo {
     + SERVO_Init() : void
     + SERVO_set_servo_percentage(percentage : uint8_t) : void
+    - gpio_trigger_Callback() : void
 }
 
 class UltraSonic {
     + ULTRA_SONIC_Init() : void
     + ULTRA_SONIC_GetDistance(): float
-    + ULTRA_SONIC_test : void
+    + ULTRA_SONIC_test() : void
 }
 
 class LEDS {
     + LEDS_Init() : void
     + LEDS_test() : void
+    - callback_chenillar() : void
 }
 
 Main --> GPIO : uses
