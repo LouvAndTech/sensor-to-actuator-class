@@ -7,13 +7,13 @@ class Main {
     + main() : void
 }
 
-class GPIO <<User modified>>{
+class GPIO <<User modifications only>>{
     + HAL_GPIO_RegisterGPIO_EXTICallback(callback : GPIO_EXTICallback, GPIO_Pin : uint16_t) : void
     + HAL_GPIO_UnregisterGPIO_EXTICallback(callback : GPIO_EXTICallback, GPIO_Pin : uint16_t) : void
     - HAL_GPIO_EXTI_Callback(GPIO_Pin : uint16_t) : void
 }
 
-class TIM <<User modified>>{
+class TIM <<User modifications only>>{
     + HAL_TIM_RegisterTimerCallback(callback : TimerCallback, htim : TIM_HandleTypeDef*) : void
     + HAL_TIM_UnregisterTimerCallback(callback : TimerCallback, htim : TIM_HandleTypeDef*) : void
     - HAL_TIM_PeriodElapsedCallback(htim : TIM_HandleTypeDef*) : void
