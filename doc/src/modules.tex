@@ -1,0 +1,80 @@
+\section{Modules développés}
+
+\subsection{Module capteur ultrasonique (ULTRA\_SONIC)}
+Ce module implémente un pattern Singleton pour gérer le capteur HC-SR04. Il offre les fonctionnalités suivantes:
+
+\begin{lstlisting}[caption={Module capteur ultrasonique}, label={lst:ultrasonicmodule}]
+void ULTRA_SONIC_Init(void)
+{
+    // Initialisation du capteur ultrasonique
+    HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
+    GPIO_RegisterGPIO_EXTICallback(gpio_trigger_Callback, SonicSensor_Echo_Pin);
+}
+
+float ULTRA_SONIC_GetDistance(void)
+{
+    return distance; 
+}
+
+void ULTRA_SONIC_test(void){
+    float distance = ULTRA_SONIC_GetDistance();
+    char buffer[50];
+    int len = snprintf(buffer, sizeof(buffer), "Distance: %f \r\n", distance);
+    HAL_UART_Transmit(&huart2, (uint8_t *)buffer, len, HAL_MAX_DELAY);
+    HAL_Delay(1000);
+}
+\end{lstlisting}
+
+Le principe de fonctionnement est le suivant:
+\begin{enumerate}
+    \item Envoi d'une impulsion de 10 µs sur le pin TRIG
+    \item Attente du signal ECHO et mesure de sa durée via interruption
+    \item Calcul de la distance selon la formule: $distance = \frac{duree \times vitesse\_son}{2}$
+\end{enumerate}
+
+\subsection{Module servomoteur (SERVO)}
+Ce module implémente également un pattern Singleton pour gérer le servomoteur:
+
+\begin{lstlisting}[caption={Module servomoteur}, label={lst:servomodule}]
+#define MIN_DUTY 2000
+#define MAX_DUTY 4000
+
+void SERVO_Init(void)
+{
+    // Initialisation du servomoteur
+    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, MIN_DUTY);
+}
+
+void SERVO_set_servo_percentage(uint8_t percentage)
+{
+    // Configuration du rapport cyclique selon le pourcentage
+    uint32_t duty_cycle = MIN_DUTY + (MAX_DUTY - MIN_DUTY) * percentage / 100;
+    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, duty_cycle);
+}
+\end{lstlisting}
+
+Le servomoteur est contrôlé par un signal PWM dont la largeur d'impulsion détermine la position angulaire:
+\begin{itemize}
+    \item MIN\_DUTY (2000) correspond à la position 0°
+    \item MAX\_DUTY (4000) correspond à la position 180°
+\end{itemize}
+
+\subsection{Module LED (LEDS)}
+Un module simple pour gérer les LEDs d'indication de mode:
+
+\begin{lstlisting}[caption={Interface du module LED}, label={lst:ledmodule}]
+void LEDS_Init(void);
+void LEDS_SetMode(uint8_t mode);
+\end{lstlisting}
+
+\subsection{Module communication série}
+Le module de communication série permet d'envoyer la distance mesurée et de recevoir les commandes:
+
+\begin{lstlisting}[caption={Exemple de communication série}, label={lst:serialcomm}]
+// Envoi de la distance
+float distance = ULTRA_SONIC_GetDistance();
+char buffer[50];
+int len = snprintf(buffer, sizeof(buffer), "Distance: %f \r\n", distance);
+HAL_UART_Transmit(&huart2, (uint8_t *)buffer, len, HAL_MAX_DELAY);
+\end{lstlisting}

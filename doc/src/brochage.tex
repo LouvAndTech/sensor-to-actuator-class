@@ -1,0 +1,28 @@
+\section{Brochage des différents éléments}
+
+\subsection{Capteur ultrasonique HC-SR04}
+\begin{itemize}
+    \item \textbf{VCC} : Alimentation 5V
+    \item \textbf{GND} : Masse
+    \item \textbf{TRIG} : Pin PB7 (TIM4\_CH2) - Signal de déclenchement
+    \item \textbf{ECHO} : Pin connecté au GPIO en mode interruption externe (EXTI)
+\end{itemize}
+
+\subsection{Servomoteur}
+\begin{itemize}
+    \item \textbf{VCC} : Alimentation 5V
+    \item \textbf{GND} : Masse
+    \item \textbf{SIGNAL} : Pin PB5 (TIM3\_CH2) - Signal PWM
+\end{itemize}
+
+\subsection{LEDs de signalisation}
+\begin{itemize}
+    \item \textbf{LED bleue} : Indique le mode 1 (servo contrôlé par distance)
+    \item \textbf{LED verte} : Indique le mode 2 (servo contrôlé par liaison série)
+\end{itemize}
+
+\subsection{Communication série UART}
+\begin{itemize}
+    \item \textbf{USART2\_TX} : Pin PA2 - Transmission de données
+    \item \textbf{USART2\_RX} : Pin PA3 - Réception de données
+\end{itemize}

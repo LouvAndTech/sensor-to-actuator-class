@@ -1,0 +1,23 @@
+\section{Introduction}
+\subsection{Contexte}
+Dans le cadre de notre formation, nous avons développé un système embarqué utilisant un microcontrôleur STM32F411RE. Ce mini-projet a consisté à mettre en place un système capable de mesurer des distances à l'aide d'un capteur ultrasonique HC-SR04 et de contrôler un servomoteur en fonction de cette distance ou d'une consigne reçue par liaison série.
+
+\subsection{Objectif}
+L'objectif principal était de développer un système fonctionnel capable de :
+\begin{itemize}
+    \item Mesurer une distance avec le capteur HC-SR04 toutes les 250 ms
+    \item Basculer entre deux modes de fonctionnement via un bouton-poussoir ou commande série
+    \item Mode 1 : Commander un servomoteur proportionnellement à la distance mesurée (entre 5 et 25 cm)
+    \item Mode 2 : Commander le servomoteur via des consignes reçues par la liaison série
+    \item Communiquer les informations de distance via la liaison série toutes les secondes
+\end{itemize}
+
+\subsection{Méthodologie}
+Pour ce projet, nous avons adopté une approche modulaire basée sur le pattern Singleton. Nous avons développé trois modules principaux :
+\begin{itemize}
+    \item Module pour la gestion du capteur HC-SR04
+    \item Module pour la gestion du servomoteur
+    \item Module pour la communication série
+\end{itemize}
+
+Cette approche nous a permis de séparer clairement les responsabilités et de faciliter l'intégration des différents composants.
