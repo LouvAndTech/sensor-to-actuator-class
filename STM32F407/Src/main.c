@@ -81,6 +81,13 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
+  typedef enum
+  {
+    MODE_1 = 0,
+    MODE_2,
+  } State_e;
+
+  State_e state = MODE_1; 
 
   /* USER CODE END Init */
 
@@ -118,12 +125,23 @@ int main(void)
   while (1)
   {
     // ULTRA_SONIC_test();
+    switch (state)
+    {
+    case MODE_1:
+      float distance = ULTRA_SONIC_GetDistance();
+      //convert distance to a percentage (max 0 to 21)
+      uint8_t percentage = (uint8_t)(distance / 21 * 100);
+      // Set the servo motor to the percentage
+      SERVO_set_servo_percentage(percentage);
+      break;
 
-    float distance = ULTRA_SONIC_GetDistance();
-    //convert distance to a percentage (max 0 to 21)
-    uint8_t percentage = (uint8_t)(distance / 21 * 100);
-    // Set the servo motor to the percentage
-    SERVO_set_servo_percentage(percentage);
+    case MODE_2:
+      
+      break;
+    
+    default:
+      break;
+    }
 
     /* USER CODE END WHILE */
 
