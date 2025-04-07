@@ -28,6 +28,7 @@
 #include "ultra_sonic.h"
 #include "leds.h"
 #include "servo.h"
+#include "button.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -116,6 +117,8 @@ int main(void)
   ULTRA_SONIC_Init();
   // Initialize the servo motor
   SERVO_Init();
+  // Initialize the button
+  BUTTON_Init();
 
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
 
@@ -126,9 +129,18 @@ int main(void)
   while (1)
   {
     // ULTRA_SONIC_test();
+    //get the current state of the button
+    if (BUTTON_GetState()){
+      state++;
+      state = state % END_MODE;
+      BUTTON_reset(); // Reset button state
+    }
     switch (state)
     {
     case MODE_1:
+      //turn on the blue LED
+      LEDS_SetBlue();
+      //get the distance from the ultrasonic sensor
       float distance = ULTRA_SONIC_GetDistance();
       //convert distance to a percentage (max 0 to 21)
       uint8_t percentage = (uint8_t)(distance / 21 * 100);
@@ -137,6 +149,23 @@ int main(void)
       break;
 
     case MODE_2:
+      //turn on the green LED
+      LEDS_SetGreen();
+      //get user input to set the position of the servo motor
+      HAL_UART_Transmit(&huart2, (uint8_t *)"Enter the position of the servo motor (0-100): ", 50, HAL_MAX_DELAY);
+      char buffer[50];
+      //HAL_UART_Receive(&huart2, (uint8_t *)buffer, sizeof(buffer), HAL_MAX_DELAY);
+      // Convert the input to an integer
+      int position = atoi(buffer);
+      // Set the servo motor to the position
+      if (position >= 0 && position <= 100)
+      {
+        SERVO_set_servo_percentage(position);
+      }
+      else
+      {
+        HAL_UART_Transmit(&huart2, (uint8_t *)"Invalid position\r\n", 18, HAL_MAX_DELAY);
+      }
       
       break;
     
