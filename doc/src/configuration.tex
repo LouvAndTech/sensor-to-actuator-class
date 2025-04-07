@@ -1,0 +1,59 @@
+\section{Configuration des périphériques internes et externes}
+
+\subsection{Timer et génération PWM}
+
+    \subsubsection{Timer pour la mesure de distance (TIM4)}
+        Nous avons configuré le TIM4 pour générer la pulsation de 10 µs nécessaire au déclenchement du capteur HC-SR04 toutes les 250 ms. Comme détaillé dans notre calcul initial:
+
+        \begin{lstlisting}[caption={Configuration du TIM4}, label={lst:tim4config}]
+        htim4.Instance = TIM4;
+        htim4.Init.Prescaler = 319;
+        htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
+        htim4.Init.Period = 65535;
+        htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+        htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+        \end{lstlisting}
+
+        Un signal PWM avec un rapport cyclique très court (10µs) est généré sur le canal 2 pour déclencher le capteur ultrasonique.
+
+    \subsubsection{Timer pour le servomoteur (TIM3)}
+        Le TIM3 est configuré pour générer un signal PWM adapté au contrôle du servomoteur:
+
+        \begin{lstlisting}[caption={Configuration du TIM3}, label={lst:tim3config}]
+        htim3.Instance = TIM3;
+        htim3.Init.Prescaler = 28;
+        htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+        htim3.Init.Period = 59999;
+        htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+        htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+        \end{lstlisting}
+
+        Cette configuration génère un signal PWM avec une période de 20 ms (50 Hz), ce qui est la fréquence standard pour contrôler les servomoteurs.
+
+\subsection{Configuration des GPIO}
+    Nous utilision plusieur GPIO:
+
+    \begin{itemize}
+        \item \textbf{ECHO} : Pin PA0 - Signal de retour du capteur ultrasonique, configuré en mode interruption externe
+        \item \textbf{LED bleue} : Pin PC13 - Indicateur de mode 1 (servo contrôlé par distance)
+        \item \textbf{LED verte} : Pin PC14 - Indicateur de mode 2 (servo contrôlé par liaison série)
+        \item \textbf{Boutton\_1} : Pin PA0 - Bouton de sélection du mode intégré à la carte (B1)
+    \end{itemize}
+
+    Certain de ces GPIO sont configurés et utilisé en temps qu'interruption externe.
+
+    \begin{itemize}
+        \item \textbf{ECHO} : Pin PA0 - Signal de retour du capteur ultrasonique, configuré en mode interruption externe
+        \item \textbf{Boutton\_1} : Pin PA0 - Bouton de sélection du mode intégré à la carte (B1)
+    \end{itemize}
+
+    Ces interruption sont gérer par un système de callback, utilisant un code codé en interne dans le moduel HAL\_GPIO.
+
+\subsection{Configuration UART}
+    La communication série est configurée pour permettre l'envoi de la distance mesurée et la réception des commandes de changement de mode ou de position du servomoteur.
+
+    \begin{lstlisting}[caption={Initialisation UART}, label={lst:uartinit}]
+    MX_USART2_UART_Init();
+    HAL_UART_Transmit(&huart2, (uint8_t *)"Hello World\r\n", 13, HAL_MAX_DELAY);
+    \end{lstlisting}
+

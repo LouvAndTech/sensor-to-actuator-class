@@ -1,28 +1,25 @@
 \section{Brochage des différents éléments}
+\subsection{Brochage des différents éléments}
 
-\subsection{Capteur ultrasonique HC-SR04}
-\begin{itemize}
-    \item \textbf{VCC} : Alimentation 5V
-    \item \textbf{GND} : Masse
-    \item \textbf{TRIG} : Pin PB7 (TIM4\_CH2) - Signal de déclenchement
-    \item \textbf{ECHO} : Pin connecté au GPIO en mode interruption externe (EXTI)
-\end{itemize}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Élément}                  & \textbf{Broche}         & \textbf{Description} \\ \hline
+Capteur ultrasonique HC-SR04      & VCC                     & Alimentation 5V \\ \hline
+                                  & GND                     & Masse \\ \hline
+                                  & TRIG                    & Pin PB7 (TIM4\_CH2) - Signal de déclenchement \\ \hline
+                                  & ECHO                    & Pin connecté au GPIO en mode interruption externe (EXTI) \\ \hline
+Servomoteur                       & VCC                     & Alimentation 5V \\ \hline
+                                  & GND                     & Masse \\ \hline
+                                  & SIGNAL                  & Pin PB5 (TIM3\_CH2) - Signal PWM \\ \hline
+LEDs de signalisation             & LED bleue               & Indique le mode 1 (servo contrôlé par distance) \\ \hline
+                                  & LED verte               & Indique le mode 2 (servo contrôlé par liaison série) \\ \hline
+Communication série UART          & USART2\_TX              & Pin PA2 - Transmission de données \\ \hline
+                                  & USART2\_RX              & Pin PA3 - Réception de données \\ \hline
+\end{tabular}
+\caption{Brochage des différents éléments}
+\label{tab:brochage}
+\end{table}
 
-\subsection{Servomoteur}
-\begin{itemize}
-    \item \textbf{VCC} : Alimentation 5V
-    \item \textbf{GND} : Masse
-    \item \textbf{SIGNAL} : Pin PB5 (TIM3\_CH2) - Signal PWM
-\end{itemize}
 
-\subsection{LEDs de signalisation}
-\begin{itemize}
-    \item \textbf{LED bleue} : Indique le mode 1 (servo contrôlé par distance)
-    \item \textbf{LED verte} : Indique le mode 2 (servo contrôlé par liaison série)
-\end{itemize}
-
-\subsection{Communication série UART}
-\begin{itemize}
-    \item \textbf{USART2\_TX} : Pin PA2 - Transmission de données
-    \item \textbf{USART2\_RX} : Pin PA3 - Réception de données
-\end{itemize}
