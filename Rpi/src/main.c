@@ -1,53 +1,44 @@
 #include <stdio.h>
-#include <gpiod.h>
 #include <unistd.h>
+#include "./packages/pwm/pwm.h"
+
 
 #define CHIP_NAME "/dev/gpiochip0"
-#define PWM_LINE 12
-#define PERIOD_NS 20000000 // 20ms period (50Hz)
-#define DUTY_CYCLE_PERCENT 7.5 // 7.5% duty cycle for neutral position
-#define DUTY_CYCLE_NS (PERIOD_NS * DUTY_CYCLE_PERCENT / 100)
+#define LINE_NUMBER 12 // Change this to the appropriate GPIO line number
 
 int main() {
-    struct gpiod_chip *chip;
-    struct gpiod_line *line;
-    int ret;
+    printf("Starting API PWM example...\n");
 
-    // Open GPIO chip
-    chip = gpiod_chip_open(CHIP_NAME);
-    if (!chip) {
-        perror("Failed to open GPIO chip");
+    // Initialize the PWM signal
+    PWM *pwm = pwm_new(CHIP_NAME, LINE_NUMBER);
+    if (!pwm) {
+        fprintf(stderr, "Failed to initialize PWM\n");
         return 1;
     }
 
-    // Get GPIO line
-    line = gpiod_chip_get_line(chip, PWM_LINE);
-    if (!line) {
-        perror("Failed to get GPIO line");
-        gpiod_chip_close(chip);
-        return 1;
-    }
+    // Set the duty cycle to 10.5%
+    pwm_set_duty_cycle(pwm, 7.5);
+    pwm_start(pwm);
+    printf("PWM signal started with 7.5%% duty cycle.\n");
 
-    // Request line as output
-    ret = gpiod_line_request_output(line, "pwm", 0);
-    if (ret < 0) {
-        perror("Failed to request line as output");
-        gpiod_chip_close(chip);
-        return 1;
-    }
 
-    // Generate PWM signal
-    for (int i = 0; i < 100; i++) { // Run for 100 cycles
-        gpiod_line_set_value(line, 1);
-        usleep(DUTY_CYCLE_NS / 1000); // High time
-        gpiod_line_set_value(line, 0);
-        usleep((PERIOD_NS - DUTY_CYCLE_NS) / 1000); // Low time
-    }
+    pwm_set_duty_cycle(pwm, 5); // 0°
+    printf("Servo to 0°.\n");
+    sleep(10); 
+    pwm_set_duty_cycle(pwm, 7.5); // 90°
+    printf("Servo to 90°.\n");
+    sleep(10); 
+    pwm_set_duty_cycle(pwm, 10); // 180°
+    printf("Servo to 180°.\n");
+    sleep(10);
 
-    // Release line and close chip
-    gpiod_line_release(line);
-    gpiod_chip_close(chip);
 
-    printf("PWM signal generated.\n");
+    // Stop the PWM signal
+    pwm_stop(pwm);
+    printf("PWM signal stopped.\n");
+
+    // Free the PWM resources
+    pwm_free(pwm);
+    printf("PWM resources cleaned up.\n");
     return 0;
 }

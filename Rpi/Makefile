@@ -30,6 +30,7 @@ CCFLAGS += -O0
 # Linker flags
 LDFLAGS = -lm
 LDFLAGS += -lgpiod
+LDFLAGS += -lpthread
 
 # Error handling 
 CCFLAGS += -Werror=uninitialized
