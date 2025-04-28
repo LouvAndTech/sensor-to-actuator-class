@@ -1,0 +1,27 @@
+{
+    "name": "LaTeX Dev Container",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "mounts": [ // Mount the local .ssh directory into the container
+        "type=bind,source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,readonly",
+    ],
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "terminal.integrated.shell.linux": "/bin/zsh",
+                "latex-workshop.latex.autoBuild.run": "never",
+                "plantuml.jar": "${workspaceFolder}/4-doc_redige/increment_1/communs_doc/plantuml.jar"
+
+
+            },
+            "extensions": [
+                "ms-vscode.cpptools",
+                "ms-python.python",
+                "mhutchie.git-graph",
+                "jebbs.plantuml",
+                "James-Yu.latex-workshop"
+            ]
+        }
+    }
+}
