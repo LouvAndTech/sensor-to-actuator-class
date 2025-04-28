@@ -1,0 +1,18 @@
+# Ignore build and bin files
+build/
+bin/
+
+# Os related files
+.DS_Store
+Thumbs.db
+
+# Ignore private files
+.private/
+
+# Cross platform files
+.sysroot*/
+.env
+
+# Ignore IDE specific files
+.vscode/
+.clang-format
