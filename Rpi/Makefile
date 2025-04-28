@@ -26,7 +26,10 @@ MKDIR_P = mkdir -p
 CCFLAGS = -Wall -MMD -MP
 CCFLAGS += -lrt
 CCFLAGS += -O0
+
+# Linker flags
 LDFLAGS = -lm
+LDFLAGS += -lgpiod
 
 # Error handling 
 CCFLAGS += -Werror=uninitialized

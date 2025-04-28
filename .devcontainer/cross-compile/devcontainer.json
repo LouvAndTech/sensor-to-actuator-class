@@ -16,7 +16,8 @@
 		"vscode": {
 			"extensions": [
 				"ms-vscode.cpptools-extension-pack",
-				"mhutchie.git-graph"
+				"mhutchie.git-graph",
+				"ms-vscode.makefile-tools"
 			]
 		}
 	}
