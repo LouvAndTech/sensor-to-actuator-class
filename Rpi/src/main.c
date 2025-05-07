@@ -32,7 +32,6 @@ int main() {
     printf("Servo to 180°.\n");
     sleep(10);
 
-
     // Stop the PWM signal
     pwm_stop(pwm);
     printf("PWM signal stopped.\n");
