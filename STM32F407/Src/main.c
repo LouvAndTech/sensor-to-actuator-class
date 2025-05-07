@@ -31,6 +31,7 @@
 #include "servo.h"
 #include "button.h"
 #include "serial.h"
+#include "string.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -108,6 +109,7 @@ int main(void)
   MX_TIM4_Init();
   MX_USART2_UART_Init();
   MX_TIM3_Init();
+  MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
   // Test the UART
   HAL_UART_Transmit(&huart2, (uint8_t *)"Program Start :\r\n", 13, HAL_MAX_DELAY);
@@ -130,6 +132,7 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  char buffer[10]; // Buffer to store the string to be sent
   while (1)
   {
     // ULTRA_SONIC_test();
@@ -145,14 +148,41 @@ int main(void)
     switch (state)
     {
     case MODE_1:
-      //turn on the blue LED
+      // Turn on the blue LED
       LEDS_SetBlue();
-      //get the distance from the ultrasonic sensor
+      // Get the distance from the ultrasonic sensor
       float distance = ULTRA_SONIC_GetDistance();
-      //convert distance to a percentage (max 0 to 21)
-      uint8_t percentage = (uint8_t)(distance / 21 * 100);
-      // Set the servo motor to the percentage
-      SERVO_set_servo_percentage(percentage);
+      if (distance > 100) {
+          distance = 100;
+      }
+      // Send the distance to the serial monitor in the exact format "sensor:XXX\n"
+      sprintf(buffer, "sensor:%03d\n", (int)distance); // Ensure 3-digit format with leading zeros
+      SERIAL_SendString(buffer);
+      HAL_UART_Transmit(&huart3, (uint8_t*)buffer, strlen(buffer), HAL_MAX_DELAY);
+  
+      // Receive the distance from the Raspberry Pi
+      uint8_t rxData[10] = {0};
+      if (HAL_UART_Receive(&huart3, rxData, sizeof(rxData), HAL_MAX_DELAY) == HAL_OK) {
+          // Check if the received data starts with "servo:"
+          sprintf(buffer, "Received: %s\n", rxData);
+          SERIAL_SendString(buffer);
+          if (strncmp((char*)rxData, "servo:", 6) == 0) {
+              // Remove the newline character if present
+              char* newline = strchr((char*)rxData, '\n');
+              if (newline) {
+                  *newline = '\0'; // Replace newline with null terminator
+              }
+              // Extract the percentage value from the received data
+              int percentage = atoi((char*)rxData + 6); // Skip "servo:"
+              if (percentage >= 0 && percentage <= 100) {
+                  SERVO_set_servo_percentage(percentage);
+              } else {
+                  SERIAL_SendString("Invalid percentage. Please enter a value between 0 and 100.\r\n");
+              }
+          } else {
+              SERIAL_SendString("Invalid command format. Expected 'servo:XXX'.\r\n");
+          }
+      }
       break;
 
     case MODE_2:
@@ -161,7 +191,6 @@ int main(void)
       //get user input to set the position of the servo motor
       SERIAL_SendString("Enter the position from 0-9 to turn the servo from 0 percent to 90 percent:\r\n");
       SERIAL_SendString("(To exit the mode, press the button, then enter a value)\r\n");
-      char buffer[1];
       SERIAL_receiveString(buffer, sizeof(buffer)); // Receive user input
       // Convert the input to an integer
       int position = atoi(buffer);
