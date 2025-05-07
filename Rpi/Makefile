@@ -31,6 +31,7 @@ CCFLAGS += -O0
 LDFLAGS = -lm
 LDFLAGS += -lgpiod
 LDFLAGS += -lpthread
+LDFLAGS += -lrt
 
 # Error handling 
 CCFLAGS += -Werror=uninitialized

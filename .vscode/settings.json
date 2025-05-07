@@ -2,6 +2,9 @@
     "files.associations": {
         "stdlib.h": "c",
         "unistd.h": "c",
-        "pwm.h": "c"
+        "pwm.h": "c",
+        "wiringserial.h": "c",
+        "wiringpi.h": "c",
+        "string.h": "c"
     }
 }
