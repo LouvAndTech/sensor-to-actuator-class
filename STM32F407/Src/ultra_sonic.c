@@ -14,7 +14,7 @@ static float distance = 0.0f;
 static uint8_t echo_received = 0;
 
 /* Private function prototypes */
-void gpio_echo_Callback(uint16_t GPIO_Pin);
+void gpio_echo_Callback(void);
 void send_trigger_pulse(void);
 
 /**
@@ -115,30 +115,28 @@ void send_trigger_pulse(void)
  * 
  * @param GPIO_Pin The GPIO pin that triggered the interrupt
  */
-void gpio_echo_Callback(uint16_t GPIO_Pin)
+void gpio_echo_Callback(void)
 {
     static uint32_t start_time = 0;
     uint32_t end_time = 0;
 
-    if (GPIO_Pin == SonicSensor_Echo_Pin)
+    if (HAL_GPIO_ReadPin(SonicSensor_Echo_GPIO_Port, SonicSensor_Echo_Pin) == GPIO_PIN_SET)
     {
-        if (HAL_GPIO_ReadPin(SonicSensor_Echo_GPIO_Port, SonicSensor_Echo_Pin) == GPIO_PIN_SET)
-        {
-            // Rising edge: save the start time
-            start_time = __HAL_TIM_GET_COUNTER(&htim3);
-        }
-        else
-        {
-            // Falling edge: save the end time
-            end_time = __HAL_TIM_GET_COUNTER(&htim3);
-
-            // Calculate the pulse duration in microseconds
-            uint32_t duration = (end_time >= start_time) ? (end_time - start_time)
-                                                         : ((0xFFFF - start_time) + end_time + 1);
-
-            // Calculate distance in cm
-            distance = (duration * SOUND_SPEED) / (2.0f * 100000.0f); // Convert to cm
-            echo_received = 1;
-        }
+        // Rising edge: save the start time
+        start_time = __HAL_TIM_GET_COUNTER(&htim3);
     }
+    else
+    {
+        // Falling edge: save the end time
+        end_time = __HAL_TIM_GET_COUNTER(&htim3);
+
+        // Calculate the pulse duration in microseconds
+        uint32_t duration = (end_time >= start_time) ? (end_time - start_time)
+                                                        : ((0xFFFF - start_time) + end_time + 1);
+
+        // Calculate distance in cm
+        distance = (duration * SOUND_SPEED) / (2.0f * 100000.0f); // Convert to cm
+        echo_received = 1;
+    }
+    
 }
