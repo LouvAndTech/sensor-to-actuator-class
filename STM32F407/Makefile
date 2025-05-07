@@ -10,6 +10,11 @@
 #   2015-07-22 - first version
 # ------------------------------------------------
 
+ifneq (,$(wildcard .env))
+	include .env
+	export
+endif
+
 ######################################
 # target
 ######################################
@@ -222,6 +227,13 @@ rebuild: clean all
 flash:
 	st-flash write $(BUILD_DIR)/$(TARGET).bin 0x8000000
 	st-flash reset
+
+remote-flash: 
+	ssh ${USER}@${IP} "mkdir -p $(dir /home/pi/STM32F4/$(BUILD_DIR)/$(TARGET).bin)"
+	scp $(BUILD_DIR)/$(TARGET).bin ${USER}@${IP}:/home/pi/STM32F4/$(BUILD_DIR)/$(TARGET).bin
+	ssh ${USER}@${IP} "st-flash write /home/pi/STM32F4/$(BUILD_DIR)/$(TARGET).bin 0x8000000"
+	ssh ${USER}@${IP} "st-flash reset"
+
 
 test: all flash
 
