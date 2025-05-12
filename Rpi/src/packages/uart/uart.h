@@ -76,7 +76,7 @@ int uart_is_enabled(UART* uart);
  * @note This function work with a fifo queue, so it will return the first message received.
  * 
  * @param uart The UART instance to get the message from.
- * @param buffer The buffer to store the message.
+ * @param buffer The buffer to store the message. It is your responsibility to allocate enough memory for the buffer. You can call uart_get_buffer_length(uart) to get the minimum length of the buffer.
  * 
  * @return The length of the message, 0 if there is no message, or -1 on failure.
  */
@@ -91,6 +91,14 @@ int uart_get_message(UART* uart, char* buffer);
  */
 int uart_send_message(UART* uart, const char* message, size_t length);
 
+/**
+ * @brief Get the length of the buffer in the UART instance.
+ * 
+ * @param uart The UART instance to get the buffer length from.
+ * 
+ * @return The length of the buffer, or -1 on failure.
+ */
+int uart_get_buffer_length(UART* uart);
 
 
 #endif // UART_H

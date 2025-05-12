@@ -189,6 +189,15 @@ extern int uart_send_message(UART* uart, const char* message, size_t length){
     return 0;
 }
 
+extern int uart_get_buffer_length(UART* uart){
+    if (uart == NULL) {
+        fprintf(stderr, "Error: UART is NULL\n");
+        return -1;
+    }
+
+    return uart->param.message_max_length;
+}
+
 
 //Private functions
 static int open_uart(UART* uart, const char* device, int baud){
