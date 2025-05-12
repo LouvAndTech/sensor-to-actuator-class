@@ -33,12 +33,12 @@ void DWT_Init(void)
  * @brief Delay for a specified number of microseconds
  * @param us Number of microseconds to delay
  */
-void DWT_Delay_us(uint32_t us)
+void Timer_Delay_us(TIM_HandleTypeDef *htim, uint32_t us)
 {
-    uint32_t clk_cycle_start = DWT->CYCCNT;
-    uint32_t delay_cycles = us * (HAL_RCC_GetHCLKFreq() / 1000000);
+    __HAL_TIM_SET_COUNTER(htim, 0); // Reset the timer counter
+    uint32_t delay_ticks = us * (HAL_RCC_GetPCLK1Freq() / ((htim->Init.Prescaler + 1) * 1000000));
 
-    while ((DWT->CYCCNT - clk_cycle_start) < delay_cycles);
+    while (__HAL_TIM_GET_COUNTER(htim) < delay_ticks);
 }
 
 /* Public functions */
@@ -48,7 +48,6 @@ void DWT_Delay_us(uint32_t us)
  */
 void ULTRA_SONIC_Init(void)
 {
-    // Initialize the ultrasonic sensor
     HAL_TIM_Base_Start(&htim3); // Start the timer for echo measurement
     HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2); // Start PWM for trigger pulse
     HAL_GPIO_RegisterGPIO_EXTICallback(gpio_echo_Callback, SonicSensor_Echo_Pin);
@@ -61,13 +60,16 @@ void ULTRA_SONIC_Init(void)
  */
 float ULTRA_SONIC_GetDistance(void)
 {
+    HAL_UART_Transmit(&huart2, (uint8_t *)"Triggering ultrasonic sensor...\r\n", 34, HAL_MAX_DELAY);
     send_trigger_pulse(); // Send the trigger pulse
     uint32_t timeout = HAL_GetTick() + 50; // 50 ms timeout
     while (!echo_received && HAL_GetTick() < timeout);
+    HAL_UART_Transmit(&huart2, (uint8_t *)"Waiting for echo...\r\n", 22, HAL_MAX_DELAY);
     if (!echo_received) {
         return 0.0f; // No echo received
     }
     echo_received = 0;
+    HAL_UART_Transmit(&huart2, (uint8_t *)"Echo received!\r\n", 17, HAL_MAX_DELAY);
     return distance;
 }
 
@@ -91,20 +93,27 @@ void ULTRA_SONIC_test(void)
  */
 void send_trigger_pulse(void)
 {
-    // Configure TIM4_CH2 to generate a 10-microsecond pulse
+    HAL_UART_Transmit(&huart2, (uint8_t *)"Sending trigger pulse...\r\n", 26, HAL_MAX_DELAY);
+
     TIM_OC_InitTypeDef sConfigOC = {0};
     sConfigOC.OCMode = TIM_OCMODE_PWM1;
-    sConfigOC.Pulse = (TRIG_PULSE_DURATION * (htim4.Init.Prescaler + 1)) / (HAL_RCC_GetPCLK1Freq() / 1000000); // Calculate pulse width
+    sConfigOC.Pulse = (TRIG_PULSE_DURATION * (HAL_RCC_GetPCLK1Freq() / ((htim4.Init.Prescaler + 1) * 1000000)));
     sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
     sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+
+    HAL_UART_Transmit(&huart2, (uint8_t *)"Configuring TIM4_CH2...\r\n", 25, HAL_MAX_DELAY);
 
     HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_2);
 
     // Start the PWM pulse
     HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
 
+    HAL_UART_Transmit(&huart2, (uint8_t *)"Trigger pulse started!\r\n", 24, HAL_MAX_DELAY);
+
     // Wait for the pulse to complete
-    DWT_Delay_us(TRIG_PULSE_DURATION);
+    Timer_Delay_us(&htim3, TRIG_PULSE_DURATION);
+
+    HAL_UART_Transmit(&huart2, (uint8_t *)"Trigger pulse sent!\r\n", 22, HAL_MAX_DELAY);
 
     // Stop the PWM pulse
     HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_2);

@@ -52,6 +52,12 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+/* USER CODE BEGIN PV */
+uint8_t rxData[10];
+volatile uint8_t rxFlag = 0;  // Indique la réception complète d'une trame UART
+char buffer[20];
+float distance;
+/* USER CODE END PV */
 
 /* USER CODE END PV */
 
@@ -128,87 +134,78 @@ int main(void)
 
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
 
-  /* USER CODE END 2 */
+/* USER CODE BEGIN 2 */
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  char buffer[10]; // Buffer to store the string to be sent
-  while (1)
-  {
-    // ULTRA_SONIC_test();
-    // LEDS_test();
-    // SERVO_test();
+// Initialisation des composants
+HAL_UART_Transmit(&huart2, (uint8_t *)"Program Start:\r\n", 16, HAL_MAX_DELAY);
+LEDS_Init();
+ULTRA_SONIC_Init();
+SERVO_Init();
+BUTTON_Init();
+SERIAL_Init();
 
-    //get the current state of the button
-    if (BUTTON_GetState()){
-      state++;
-      state = state % END_MODE;
-      BUTTON_reset(); // Reset button state
-    }
-    switch (state)
+// Démarrage des interruptions UART3 en réception
+HAL_UART_Receive_IT(&huart3, rxData, sizeof(rxData));
+
+HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
+
+// Timer pour envoyer toutes les 250 ms
+uint32_t lastTick = HAL_GetTick();
+
+/* USER CODE END 2 */
+
+/* Infinite loop */
+/* USER CODE BEGIN WHILE */
+while (1)
+{
+    // Gestion périodique toutes les 250 ms
+    if (HAL_GetTick() - lastTick >= 250)
     {
-    case MODE_1:
-      // Turn on the blue LED
-      LEDS_SetBlue();
-      // Get the distance from the ultrasonic sensor
-      float distance = ULTRA_SONIC_GetDistance();
-      if (distance > 100) {
-          distance = 100;
-      }
-      // Send the distance to the serial monitor in the exact format "sensor:XXX\n"
-      sprintf(buffer, "sensor:%03d\n", (int)distance); // Ensure 3-digit format with leading zeros
-      SERIAL_SendString(buffer);
-      HAL_UART_Transmit(&huart3, (uint8_t*)buffer, strlen(buffer), HAL_MAX_DELAY);
-  
-      // Receive the distance from the Raspberry Pi
-      uint8_t rxData[10] = {0};
-      if (HAL_UART_Receive(&huart3, rxData, sizeof(rxData), HAL_MAX_DELAY) == HAL_OK) {
-          // Check if the received data starts with "servo:"
-          sprintf(buffer, "Received: %s\n", rxData);
-          SERIAL_SendString(buffer);
-          if (strncmp((char*)rxData, "servo:", 6) == 0) {
-              // Remove the newline character if present
-              char* newline = strchr((char*)rxData, '\n');
-              if (newline) {
-                  *newline = '\0'; // Replace newline with null terminator
-              }
-              // Extract the percentage value from the received data
-              int percentage = atoi((char*)rxData + 6); // Skip "servo:"
-              if (percentage >= 0 && percentage <= 100) {
-                  SERVO_set_servo_percentage(percentage);
-              } else {
-                  SERIAL_SendString("Invalid percentage. Please enter a value between 0 and 100.\r\n");
-              }
-          } else {
-              SERIAL_SendString("Invalid command format. Expected 'servo:XXX'.\r\n");
-          }
-      }
-      break;
+        lastTick = HAL_GetTick();
 
-    case MODE_2:
-      //turn on the green LED
-      LEDS_SetGreen();
-      //get user input to set the position of the servo motor
-      SERIAL_SendString("Enter the position from 0-9 to turn the servo from 0 percent to 90 percent:\r\n");
-      SERIAL_SendString("(To exit the mode, press the button, then enter a value)\r\n");
-      SERIAL_receiveString(buffer, sizeof(buffer)); // Receive user input
-      // Convert the input to an integer
-      int position = atoi(buffer);
-      // Set the servo motor to the position
-      if (position >= 0 && position <= 100){
-        SERVO_set_servo_percentage(position);
-      }
-      else{
-        SERIAL_SendString("Invalid position. Please enter a value between 0 and 100.\r\n");
-      }
-      
-      break;
-    
-    default:
-      break;
+        distance = ULTRA_SONIC_GetDistance();
+        if (distance > 100) distance = 100;
+
+        // Envoie distance sur UART
+        sprintf(buffer, "sensor:%03d\n", (int)distance);
+        SERIAL_SendString(buffer);
+        HAL_UART_Transmit(&huart3, (uint8_t*)buffer, strlen(buffer), HAL_MAX_DELAY);
+
+        LEDS_SetBlue(); // Indique l'activité
     }
 
-    /* USER CODE END WHILE */
+    // Traitement non bloquant des données reçues
+    if (rxFlag)
+    {
+        rxFlag = 0; // Réinitialise pour la prochaine réception
+
+        SERIAL_SendString("Received: ");
+        SERIAL_SendString((char*)rxData);
+        SERIAL_SendString("\r\n");
+
+        if (strncmp((char*)rxData, "servo:", 6) == 0)
+        {
+            int percentage = atoi((char*)rxData + 6);
+            if (percentage >= 0 && percentage <= 100)
+            {
+                SERVO_set_servo_percentage(percentage);
+            }
+            else
+            {
+                SERIAL_SendString("Invalid percentage (0-100)\r\n");
+            }
+        }
+        else
+        {
+            SERIAL_SendString("Invalid command format\r\n");
+        }
+
+        // Redémarre l'interruption UART après traitement
+        memset(rxData, 0, sizeof(rxData));
+        HAL_UART_Receive_IT(&huart3, rxData, sizeof(rxData));
+    }
+}
+/* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
   }
@@ -262,6 +259,17 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+/* USER CODE BEGIN 4 */
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    if (huart == &huart3)
+    {
+        rxFlag = 1; // Indique que la réception est terminée
+    }
+}
+
+/* USER CODE END 4 */
 
 /* USER CODE END 4 */
 
