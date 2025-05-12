@@ -14,7 +14,7 @@ typedef enum {
 } ihm_status_t;
 
 void ihm_menu(UART* uart) {
-    ihm_status_t choice;
+    int choice;
     char last_received_message[MAX_MESSAGE_LENGTH] = {0};
 
     while (1) {
