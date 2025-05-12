@@ -155,6 +155,9 @@ extern int uart_get_message(UART* uart, char* buffer){
         return -1;
     }
 
+    fprintf(stdout,"Reading the new value\n");
+    
+
     ssize_t bytes_read = mq_receive(uart->message_queue_rx, buffer, uart->param.message_max_length, NULL);
     if (bytes_read < 0) {
         if (errno == EAGAIN) {
@@ -166,6 +169,8 @@ extern int uart_get_message(UART* uart, char* buffer){
             return -1;
         }
     }
+    fprintf(stdout,"buffer : %s\n", buffer);
+
 
     buffer[bytes_read] = '\0'; // Null-terminate the string
     return bytes_read;
@@ -254,7 +259,7 @@ static void read_uart(UART* uart){
             // Timeout occurred
             //fprintf(stderr, "Timeout occurred while reading from UART\n");
         } else if (bytes_read == 0) {
-
+            
             printf("Received: %s\n", buffer);
             if (mq_send(uart->message_queue_rx, buffer, bytes_read, 0) == -1) {
                 if (errno == EAGAIN) {

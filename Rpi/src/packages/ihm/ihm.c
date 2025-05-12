@@ -36,7 +36,7 @@ void ihm_menu(UART* uart) {
                 memset(buffer, 0, sizeof(buffer));
                 if (uart_get_message(uart, buffer) > 0) {
                     strncpy(last_received_message, buffer, MAX_MESSAGE_LENGTH - 1);
-                    printf("Last received value: %s\n", last_received_message);
+                    printf("\nLast received value: %s\n", last_received_message);
                 } else {
                     printf("No value received or error occurred.\n");
                 }
@@ -55,7 +55,7 @@ void ihm_menu(UART* uart) {
                     snprintf(command, sizeof(command), "servo:%03d\n", new_value);
 
                     if (uart_send_message(uart, command, strlen(command)) == 0) {
-                        printf("Command sent successfully: %s", command);
+                        printf("\nCommand sent successfully: %s", command);
                     } else {
                         fprintf(stderr, "Error sending command to UART\n");
                     }

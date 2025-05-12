@@ -38,6 +38,7 @@ int main() {
     ihm_menu(uart);
 
     // Clean up 
+    uart_stop(uart);
     uart_free(uart);
     return 0;
 }
