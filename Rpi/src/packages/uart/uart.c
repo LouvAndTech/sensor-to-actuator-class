@@ -257,7 +257,23 @@ static void read_uart(UART* uart){
 
             printf("Received: %s\n", buffer);
             if (mq_send(uart->message_queue_rx, buffer, bytes_read, 0) == -1) {
-                perror("Error sending message to queue rx");
+                if (errno == EAGAIN) {
+                    // Queue is full
+                    //read one message to free space then send the new one
+                    char temp_buffer[uart->param.message_max_length];
+                    ssize_t mq_received = mq_receive(uart->message_queue_rx, temp_buffer, sizeof(temp_buffer), NULL);
+                    if (mq_received >= 0) {
+                        // Successfully read a message from the queue
+                        // Now send the new message
+                        if (mq_send(uart->message_queue_rx, buffer, bytes_read, 0) == -1) {
+                            perror("Error sending message to queue rx");
+                        }
+                    } else {
+                        perror("Error receiving message from queue rx");
+                    }
+                } else {
+                    perror("Error sending message to queue rx");
+                }
             }
         }
 
