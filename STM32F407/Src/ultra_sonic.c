@@ -60,16 +60,13 @@ void ULTRA_SONIC_Init(void)
  */
 float ULTRA_SONIC_GetDistance(void)
 {
-    HAL_UART_Transmit(&huart2, (uint8_t *)"Triggering ultrasonic sensor...\r\n", 34, HAL_MAX_DELAY);
     send_trigger_pulse(); // Send the trigger pulse
     uint32_t timeout = HAL_GetTick() + 50; // 50 ms timeout
     while (!echo_received && HAL_GetTick() < timeout);
-    HAL_UART_Transmit(&huart2, (uint8_t *)"Waiting for echo...\r\n", 22, HAL_MAX_DELAY);
     if (!echo_received) {
         return 0.0f; // No echo received
     }
     echo_received = 0;
-    HAL_UART_Transmit(&huart2, (uint8_t *)"Echo received!\r\n", 17, HAL_MAX_DELAY);
     return distance;
 }
 
@@ -93,7 +90,6 @@ void ULTRA_SONIC_test(void)
  */
 void send_trigger_pulse(void)
 {
-    HAL_UART_Transmit(&huart2, (uint8_t *)"Sending trigger pulse...\r\n", 26, HAL_MAX_DELAY);
 
     TIM_OC_InitTypeDef sConfigOC = {0};
     sConfigOC.OCMode = TIM_OCMODE_PWM1;
@@ -101,19 +97,16 @@ void send_trigger_pulse(void)
     sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
     sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
 
-    HAL_UART_Transmit(&huart2, (uint8_t *)"Configuring TIM4_CH2...\r\n", 25, HAL_MAX_DELAY);
 
     HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_2);
 
     // Start the PWM pulse
     HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
 
-    HAL_UART_Transmit(&huart2, (uint8_t *)"Trigger pulse started!\r\n", 24, HAL_MAX_DELAY);
 
     // Wait for the pulse to complete
     Timer_Delay_us(&htim3, TRIG_PULSE_DURATION);
 
-    HAL_UART_Transmit(&huart2, (uint8_t *)"Trigger pulse sent!\r\n", 22, HAL_MAX_DELAY);
 
     // Stop the PWM pulse
     HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_2);
