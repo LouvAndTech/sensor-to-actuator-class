@@ -33,7 +33,7 @@ struct UART_t{
 // Private functions prototypes
 static int open_uart(UART* uart, const char* device, int baud);
 static int close_uart(UART* uart);
-static void read_uart(UART* uart);
+static void run_uart(UART* uart);
 
 // Public functions 
 extern UART* uart_new(UART_param* param){
@@ -112,7 +112,7 @@ extern int uart_start(UART* uart){
 
     uart->enabled = 1;
 
-    int thread_result = pthread_create(&uart->read_thread, NULL, (void* (*)(void*))read_uart, uart);
+    int thread_result = pthread_create(&uart->read_thread, NULL, (void* (*)(void*))run_uart, uart);
     if (thread_result != 0) {
         fprintf(stderr, "Error creating thread: %s\n", strerror(thread_result));
         return -1;
@@ -155,9 +155,6 @@ extern int uart_get_message(UART* uart, char* buffer){
         return -1;
     }
 
-    fprintf(stdout,"Reading the new value\n");
-    
-
     ssize_t bytes_read = mq_receive(uart->message_queue_rx, buffer, uart->param.message_max_length, NULL);
     if (bytes_read < 0) {
         if (errno == EAGAIN) {
@@ -169,7 +166,7 @@ extern int uart_get_message(UART* uart, char* buffer){
             return -1;
         }
     }
-    fprintf(stdout,"buffer : %s\n", buffer);
+    //fprintf(stdout,"buffer : %s\n", buffer);
 
 
     buffer[bytes_read] = '\0'; // Null-terminate the string
@@ -242,7 +239,7 @@ static int close_uart(UART* uart){
     return 0;
 }
 
-static void read_uart(UART* uart){
+static void run_uart(UART* uart){
     if (uart == NULL || !uart->openned) {
         fprintf(stderr, "Error: UART is not opened or NULL\n");
         return;
@@ -252,16 +249,16 @@ static void read_uart(UART* uart){
     while (uart->enabled) {
 
         // Read from the UART device
-        int bytes_read = serialport_read_until(uart->serial_port, buffer, uart->param.end_line, sizeof(buffer), uart->param.timeout);
-        if (bytes_read == -1) {
+        int err = serialport_read_until(uart->serial_port, buffer, uart->param.end_line, sizeof(buffer), uart->param.timeout);
+        if (err == -1) {
             fprintf(stderr, "Error reading from UART: %s\n", strerror(errno));
-        } else if (bytes_read == -2) {
+        } else if (err == -2) {
             // Timeout occurred
             //fprintf(stderr, "Timeout occurred while reading from UART\n");
-        } else if (bytes_read == 0) {
+        } else if (err == 0) {
             
-            printf("Received: %s\n", buffer);
-            if (mq_send(uart->message_queue_rx, buffer, bytes_read, 0) == -1) {
+            //printf("Received: %s\n", buffer);
+            if (mq_send(uart->message_queue_rx, buffer, strlen(buffer)+1, 0) == -1) {
                 if (errno == EAGAIN) {
                     // Queue is full
                     //read one message to free space then send the new one
@@ -270,7 +267,7 @@ static void read_uart(UART* uart){
                     if (mq_received >= 0) {
                         // Successfully read a message from the queue
                         // Now send the new message
-                        if (mq_send(uart->message_queue_rx, buffer, bytes_read, 0) == -1) {
+                        if (mq_send(uart->message_queue_rx, buffer, strlen(buffer)+1, 0) == -1) {
                             perror("Error sending message to queue rx");
                         }
                     } else {
@@ -285,6 +282,7 @@ static void read_uart(UART* uart){
         // Write to the UART device
         ssize_t mq_received = mq_receive(uart->message_queue_tx, buffer, sizeof(buffer), NULL);
         if (mq_received >= 0) {
+            //fprintf(stdout,"\nsending: %s\n", buffer);
             if (serialport_write(uart->serial_port, buffer) == -1) {
                 fprintf(stderr, "Error writing to UART: %s\n", strerror(errno));
             }

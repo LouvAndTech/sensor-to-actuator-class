@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+
 #include "./packages/pwm/pwm.h"
 #include "./packages/uart/uart.h"
 #include "./packages/ihm/ihm.h"
+#include "./packages/automatic/automatic.h"
 
 
 #define CHIP_NAME "/dev/gpiochip0"
@@ -34,11 +36,23 @@ int main() {
     }
     printf("UART started successfully.\n");
 
+    // Initialize the PWM device
+    PWM *pwm = pwm_new(CHIP_NAME, LINE_NUMBER);
+    if (!pwm) {
+        fprintf(stderr, "Failed to initialize PWM\n");
+        return 1;
+    }
+
+    // Init the automatic mode
+    automatic_init(uart, pwm);
+
     // Start interface menu
     ihm_menu(uart);
 
     // Clean up 
     uart_stop(uart);
     uart_free(uart);
+    pwm_stop(pwm);
+    pwm_free(pwm);
     return 0;
 }

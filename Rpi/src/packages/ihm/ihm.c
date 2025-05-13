@@ -2,7 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "../uart/uart.h"
+#include "../automatic/automatic.h"
+
 
 #define MAX_MESSAGE_LENGTH 100
 
@@ -10,8 +13,18 @@ typedef enum {
     MENU=0,
     SHOW_LAST_VALUE,
     SET_NEW_VALUE,
+    AUTOMATIC_MODE,
     EXIT
 } ihm_status_t;
+
+static int check_intput_int(int scanf_result) {
+    if (scanf_result != 1) {
+        fprintf(stderr, "Invalid input. Please enter a number.\n");
+        while (getchar() != '\n'); // Clear the input buffer
+        return -1;
+    }
+    return 0;
+}
 
 void ihm_menu(UART* uart) {
     int choice;
@@ -23,7 +36,9 @@ void ihm_menu(UART* uart) {
         printf("2. Set a new value (0-100)\n");
         printf("3. Exit\n");
         printf("Enter your choice: ");
-        scanf("%d", &choice);
+        if (check_intput_int(scanf("%d", &choice)) != 0) {
+            continue; // Invalid input, prompt again
+        }
 
         switch (choice) {
             case SHOW_LAST_VALUE: {
@@ -34,11 +49,16 @@ void ihm_menu(UART* uart) {
                 }
                 char buffer[max_length];
                 memset(buffer, 0, sizeof(buffer));
-                if (uart_get_message(uart, buffer) > 0) {
+                int bytes_received = uart_get_message(uart, buffer);
+                if ( bytes_received > 0) {
                     strncpy(last_received_message, buffer, MAX_MESSAGE_LENGTH - 1);
                     printf("\nLast received value: %s\n", last_received_message);
                 } else {
-                    printf("No value received or error occurred.\n");
+                    if (bytes_received == -1) {
+                        fprintf(stderr, "Error receiving message from UART\n");
+                    } else if (bytes_received == 0) {
+                        printf("No new message received.\n");
+                    }
                 }
                 break;
             }
@@ -46,7 +66,9 @@ void ihm_menu(UART* uart) {
             case SET_NEW_VALUE: {
                 int new_value;
                 printf("Enter a value between 0 and 100: ");
-                scanf("%d", &new_value);
+                if (check_intput_int(scanf("%d", &new_value)) != 0) {
+                    continue; // Invalid input, prompt again
+                }
 
                 if (new_value < 0 || new_value > 100) {
                     printf("Invalid value. Please enter a number between 0 and 100.\n");
@@ -62,6 +84,15 @@ void ihm_menu(UART* uart) {
                 }
                 break;
             }
+            case AUTOMATIC_MODE:
+                printf("Starting automatic mode...\n");
+                automatic_start(); // Start the automatic mode
+                printf("Automatic mode started.\n");
+                printf("Press Enter to stop automatic mode...\n");
+                getchar(); // Wait for user input
+                automatic_stop();
+                printf("Automatic mode stopped.\n");
+                break;
 
             case EXIT:
                 printf("Exiting the terminal interface.\n");
