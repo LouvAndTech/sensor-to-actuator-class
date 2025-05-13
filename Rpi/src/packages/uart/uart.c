@@ -245,11 +245,12 @@ static void run_uart(UART* uart){
         return;
     }
     
-    char buffer[uart->param.message_max_length];
+    char buffer_rx[uart->param.message_max_length];
+    char buffer_tx[uart->param.message_max_length];
     while (uart->enabled) {
 
         // Read from the UART device
-        int err = serialport_read_until(uart->serial_port, buffer, uart->param.end_line, sizeof(buffer), uart->param.timeout);
+        int err = serialport_read_until(uart->serial_port, buffer_rx, uart->param.end_line, sizeof(buffer_rx), uart->param.timeout);
         if (err == -1) {
             fprintf(stderr, "Error reading from UART: %s\n", strerror(errno));
         } else if (err == -2) {
@@ -258,7 +259,7 @@ static void run_uart(UART* uart){
         } else if (err == 0) {
             
             //printf("Received: %s\n", buffer);
-            if (mq_send(uart->message_queue_rx, buffer, strlen(buffer)+1, 0) == -1) {
+            if (mq_send(uart->message_queue_rx, buffer_rx, strlen(buffer_rx), 0) == -1) {
                 if (errno == EAGAIN) {
                     // Queue is full
                     //read one message to free space then send the new one
@@ -267,7 +268,7 @@ static void run_uart(UART* uart){
                     if (mq_received >= 0) {
                         // Successfully read a message from the queue
                         // Now send the new message
-                        if (mq_send(uart->message_queue_rx, buffer, strlen(buffer)+1, 0) == -1) {
+                        if (mq_send(uart->message_queue_rx, buffer_rx, strlen(buffer_rx), 0) == -1) {
                             perror("Error sending message to queue rx");
                         }
                     } else {
@@ -280,10 +281,10 @@ static void run_uart(UART* uart){
         }
 
         // Write to the UART device
-        ssize_t mq_received = mq_receive(uart->message_queue_tx, buffer, sizeof(buffer), NULL);
+        ssize_t mq_received = mq_receive(uart->message_queue_tx, buffer_tx, sizeof(buffer_tx), NULL);
         if (mq_received >= 0) {
             //fprintf(stdout,"\nsending: %s\n", buffer);
-            if (serialport_write(uart->serial_port, buffer) == -1) {
+            if (serialport_write(uart->serial_port, buffer_tx) == -1) {
                 fprintf(stderr, "Error writing to UART: %s\n", strerror(errno));
             }
         } else {

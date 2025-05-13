@@ -74,7 +74,7 @@ void ihm_menu(UART* uart) {
                 if (new_value < 0 || new_value > 100) {
                     printf("Invalid value. Please enter a number between 0 and 100.\n");
                 } else {
-                    char command[16];
+                    char command[50];
                     snprintf(command, sizeof(command), "servo:%03d\n", new_value);
 
                     if (uart_send_message(uart, command, strlen(command)) == 0) {
