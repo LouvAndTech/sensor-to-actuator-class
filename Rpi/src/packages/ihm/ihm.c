@@ -34,7 +34,8 @@ void ihm_menu(UART* uart) {
         printf("\n--- Terminal Interface Menu ---\n");
         printf("1. Show the last value received from UART\n");
         printf("2. Set a new value (0-100)\n");
-        printf("3. Exit\n");
+        printf("3. Start automatic mode\n");
+        printf("4. Exit\n");
         printf("Enter your choice: ");
         if (check_intput_int(scanf("%d", &choice)) != 0) {
             continue; // Invalid input, prompt again
@@ -85,13 +86,17 @@ void ihm_menu(UART* uart) {
                 break;
             }
             case AUTOMATIC_MODE:
+                printf("\n");
                 printf("Starting automatic mode...\n");
                 automatic_start(); // Start the automatic mode
                 printf("Automatic mode started.\n");
                 printf("Press Enter to stop automatic mode...\n");
+                getchar(); // Consume the newline character
                 getchar(); // Wait for user input
+                printf("Stopping automatic mode...\n");
                 automatic_stop();
                 printf("Automatic mode stopped.\n");
+                printf("\n");
                 break;
 
             case EXIT:

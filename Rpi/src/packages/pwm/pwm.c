@@ -58,7 +58,7 @@ void pwm_free(PWM *pwm) {
 //private function
 
 static void run(PWM *pwm) {
-    printf("on : %d - off : %d\n", pwm->duty_cycle_us, PERIOD_US - pwm->duty_cycle_us);
+    //printf("on : %d - off : %d\n", pwm->duty_cycle_us, PERIOD_US - pwm->duty_cycle_us);
     while(pwm->running) {
         gpiod_line_set_value(pwm->line, 1);
         usleep(pwm->duty_cycle_us); // High time

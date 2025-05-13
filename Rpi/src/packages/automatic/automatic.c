@@ -94,8 +94,12 @@ static void run(void){
         bytes_received = uart_get_message(uart, buffer);
         if (bytes_received > 0) {
             // Process the received message in the format "sensor:069\n"
-            int value = -1;
-            if (sscanf(buffer, "sensor:%d", &value) == 1) {
+            int sensor = -1;
+            if (sscanf(buffer, "sensor:%d", &sensor) == 1) {
+
+                // Compute the percentage value from the received value
+                int value = (sensor * 100) / 60; // Assuming the sensor value is between 0 and 60
+
                 // Set the PWM value
                 if (value < 0 || value > 100) {
                     fprintf(stderr, "Error: Invalid value received from UART\n");
@@ -107,7 +111,7 @@ static void run(void){
                 printf("Set PWM value to %d\n", value);
                 // Send the value back to UART
                 char response[50];
-                snprintf(response, sizeof(response), "sensor:%d\n", value);
+                snprintf(response, sizeof(response), "servo:%03d\n", value);
                 uart_send_message(uart, response, strlen(response));
                 printf("Sent response to UART: %s", response);
             } else {
