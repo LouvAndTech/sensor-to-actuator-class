@@ -52,7 +52,10 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+volatile uint8_t rxFlag = 0;    // flag levé à chaque réception
+uint8_t rxChar;                 // caractère reçu par interruption
+uint8_t servoCommand = 0;       // valeur à envoyer au servo (0–100)
+uint8_t distance = 0;          // distance mesurée par l'ultrason
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -112,7 +115,7 @@ int main(void)
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
   // Test the UART
-  HAL_UART_Transmit(&huart2, (uint8_t *)"Program Start :\r\n", 13, HAL_MAX_DELAY);
+  HAL_UART_Transmit(&huart3, (uint8_t *)"Program Start :\r\n", 13, HAL_MAX_DELAY);
 
 
   // Initialized the LEDs
@@ -126,94 +129,77 @@ int main(void)
   //
   SERIAL_Init();
 
+  HAL_UART_Receive_IT(&huart3, &rxChar, 1);
+
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
+
+/* USER CODE BEGIN 2 */
+
+// Initialisation des composants
+HAL_UART_Transmit(&huart3, (uint8_t *)"Program Start:\r\n", 16, HAL_MAX_DELAY);
+LEDS_Init();
+ULTRA_SONIC_Init();
+SERVO_Init();
+BUTTON_Init();
+SERIAL_Init();
+
+// Démarrage des interruptions UART3 en réception
+
+HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
+
+// Timer pour envoyer toutes les 250 ms
+uint32_t lastTick = HAL_GetTick();
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  char buffer[10]; // Buffer to store the string to be sent
-  while (1)
-  {
-    // ULTRA_SONIC_test();
-    // LEDS_test();
-    // SERVO_test();
+while (1)
+{
 
-    //get the current state of the button
-    if (BUTTON_GetState()){
-      state++;
-      state = state % END_MODE;
-      BUTTON_reset(); // Reset button state
-    }
-    switch (state)
+    // Envoi périodique de la distance (250 ms)
+    if (HAL_GetTick() - lastTick >= 250)
     {
-    case MODE_1:
-      // Turn on the blue LED
-      LEDS_SetBlue();
-      // Get the distance from the ultrasonic sensor
-      float distance = ULTRA_SONIC_GetDistance();
-      if (distance > 100) {
-          distance = 100;
-      }
-      // Send the distance to the serial monitor in the exact format "sensor:XXX\n"
-      sprintf(buffer, "sensor:%03d\n", (int)distance); // Ensure 3-digit format with leading zeros
-      SERIAL_SendString(buffer);
-      HAL_UART_Transmit(&huart3, (uint8_t*)buffer, strlen(buffer), HAL_MAX_DELAY);
-  
-      // Receive the distance from the Raspberry Pi
-      uint8_t rxData[10] = {0};
-      if (HAL_UART_Receive(&huart3, rxData, sizeof(rxData), HAL_MAX_DELAY) == HAL_OK) {
-          // Check if the received data starts with "servo:"
-          sprintf(buffer, "Received: %s\n", rxData);
-          SERIAL_SendString(buffer);
-          if (strncmp((char*)rxData, "servo:", 6) == 0) {
-              // Remove the newline character if present
-              char* newline = strchr((char*)rxData, '\n');
-              if (newline) {
-                  *newline = '\0'; // Replace newline with null terminator
-              }
-              // Extract the percentage value from the received data
-              int percentage = atoi((char*)rxData + 6); // Skip "servo:"
-              if (percentage >= 0 && percentage <= 100) {
-                  SERVO_set_servo_percentage(percentage);
-              } else {
-                  SERIAL_SendString("Invalid percentage. Please enter a value between 0 and 100.\r\n");
-              }
-          } else {
-              SERIAL_SendString("Invalid command format. Expected 'servo:XXX'.\r\n");
-          }
-      }
-      break;
+        lastTick = HAL_GetTick();
 
-    case MODE_2:
-      //turn on the green LED
-      LEDS_SetGreen();
-      //get user input to set the position of the servo motor
-      SERIAL_SendString("Enter the position from 0-9 to turn the servo from 0 percent to 90 percent:\r\n");
-      SERIAL_SendString("(To exit the mode, press the button, then enter a value)\r\n");
-      SERIAL_receiveString(buffer, sizeof(buffer)); // Receive user input
-      // Convert the input to an integer
-      int position = atoi(buffer);
-      // Set the servo motor to the position
-      if (position >= 0 && position <= 100){
-        SERVO_set_servo_percentage(position);
-      }
-      else{
-        SERIAL_SendString("Invalid position. Please enter a value between 0 and 100.\r\n");
-      }
-      
-      break;
-    
-    default:
-      break;
+        distance = ULTRA_SONIC_GetDistance();
+        if (distance > 100) distance = 100;
+
+        // Envoi sensor:[000-100] par uart3
+        uint8_t distance_byte = (uint8_t)distance; // Convertir la distance en un octet
+        HAL_UART_Transmit(&huart3, &distance_byte, 1, HAL_MAX_DELAY); // Envoyer un seul octet
+        
+        LEDS_SetBlue();
     }
 
+    // Traitement de la commande reçue (non bloquant)
+    if (rxFlag)
+    {
+        rxFlag = 0;  // on consomme le flag
+
+        // si la valeur est un pourcentage valide (0–100)
+        if (servoCommand <= 100)
+        {
+            // on bouge le servomoteur
+            SERVO_set_servo_percentage(servoCommand);
+
+            // (optionnel) on renvoie un accusé simple
+            //HAL_UART_Transmit(&huart3, &servoCommand, 1, HAL_MAX_DELAY);
+        }
+        else
+        {
+            // valeur hors plage : on notifie l’erreur
+            const char *msg = "Err\r\n";
+            HAL_UART_Transmit(&huart3, (uint8_t *)msg, strlen(msg), HAL_MAX_DELAY);
+        }
+    }
+}
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
-}
+
 
 /**
   * @brief System Clock Configuration
@@ -262,6 +248,22 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    if (huart->Instance == USART3)  // on ne gère que l’UART3
+    {
+        // on stocke directement le pourcentage reçu
+        servoCommand = rxChar;
+        rxFlag = 1;
+
+        // on réarme tout de suite l’interruption pour le prochain octet
+        HAL_UART_Receive_IT(&huart3, &rxChar, 1);
+    }
+}
+
+
+
 
 /* USER CODE END 4 */
 
