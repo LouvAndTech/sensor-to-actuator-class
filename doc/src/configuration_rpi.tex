@@ -159,6 +159,7 @@
         \item Possibilité de repasser en mode manuel à tout moment
     \end{itemize}
 
-\subsection{Gestion des LOG}
+\subsection{Gestion des LOG et des ERREURs}
+    Toute les erreurs sont normalment gérées par les différent modules qui font à leurs tour remonter les erreurs au module appelant.
     Nous avons aussi développé un module de gestion des logs, permettant de suivre l'activité du système et de déboguer facilement. Ce module est défini dans les fichiers \texttt{log.h} et \texttt{log.c}.
     Il permet de sauvegarder les logs dans un fichier texte sur la carte SD de la Raspberry Pi.
