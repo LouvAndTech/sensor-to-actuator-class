@@ -1,4 +1,4 @@
-\section{Modules développés}
+\subsection{Modules développés}
 
 \begin{figure}[H]
     \centering
@@ -7,7 +7,7 @@
     \label{fig:class_diagram}
 \end{figure}
 
-\subsection{Module capteur ultrasonique (ULTRA\_SONIC)}
+\subsubsection{Module capteur ultrasonique (ULTRA\_SONIC)}
 Ce module implémente un pattern Singleton pour gérer le capteur HC-SR04. Il offre les fonctionnalités suivantes:
 
 \begin{lstlisting}[caption={Module capteur ultrasonique}, label={lst:ultrasonicmodule}]
@@ -39,7 +39,7 @@ Le principe de fonctionnement est le suivant:
     \item Calcul de la distance selon la formule: $distance = \frac{duree \times vitesse\_son}{2}$
 \end{enumerate}
 
-\subsection{Module servomoteur (SERVO)}
+\subsubsection{Module servomoteur (SERVO)}
 Ce module implémente également un pattern Singleton pour gérer le servomoteur:
 
 \begin{lstlisting}[caption={Module servomoteur}, label={lst:servomodule}]
@@ -67,7 +67,7 @@ Le servomoteur est contrôlé par un signal PWM dont la largeur d'impulsion dét
     \item MAX\_DUTY (4000) correspond à la position 180°
 \end{itemize}
 
-\subsection{Module LED (LEDS)}
+\subsubsection{Module LED (LEDS)}
 Un module simple pour gérer les LEDs d'indication de mode:
 
 \begin{lstlisting}[caption={Interface du module LED}, label={lst:ledmodule}]
@@ -75,7 +75,7 @@ void LEDS_Init(void);
 void LEDS_SetMode(uint8_t mode);
 \end{lstlisting}
 
-\subsection{Module communication série}
+\subsubsection{Module communication série}
 Le module de communication série permet d'envoyer la distance mesurée et de recevoir les commandes:
 
 \begin{lstlisting}[caption={Exemple de communication série}, label={lst:serialcomm}]
@@ -86,7 +86,7 @@ int len = snprintf(buffer, sizeof(buffer), "Distance: %f \r\n", distance);
 HAL_UART_Transmit(&huart2, (uint8_t *)buffer, len, HAL_MAX_DELAY);
 \end{lstlisting}
 
-\subsection{Module bouton poussoir (BUTTON)}
+\subsubsection{Module bouton poussoir (BUTTON)}
 Le module de gestion du bouton poussoir permet de changer le mode de fonctionnement du système. Il utilise une interruption externe pour détecter les pressions sur le bouton:
 
 Le module BUTTON gère un bouton poussoir de manière autonome en utilisant une interruption externe. Il se base sur deux variables globales principales : une variable indiquant si le bouton a été pressé et une autre mémorisant le dernier instant d’activation, ce qui est crucial pour le contrôle du rebond.
