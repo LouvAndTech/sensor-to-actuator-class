@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <pthread.h>
 
+#include "../../utils.h"
+
 #define PERIOD_US 20000 // 20ms period (50Hz)
 #define DEFAULT_DUTY_CYCLE_PERCENT 7.5
 
@@ -27,7 +29,7 @@ static int init(PWM *pwm, const char *chip_name, int line_number);
 PWM* pwm_new(const char *chip_name, int line_number){
     PWM *pwm = malloc(sizeof(PWM));
     if (!pwm) {
-        perror("Failed to allocate memory for PWM");
+        LOG_PERROR("Failed to allocate memory for PWM");
         return NULL;
     }
     init(pwm, chip_name, line_number);
@@ -40,7 +42,11 @@ void pwm_set_duty_cycle(PWM *pwm, float duty_cycle_percent) {
 
 void pwm_start(PWM *pwm) {
     pwm->running = 1;
-    pthread_create(&pwm->thread, NULL, (void *(*)(void *))run, pwm);
+    if (pthread_create(&pwm->thread, NULL, (void *(*)(void *))run, pwm) != 0) {
+        LOG_PERROR("Failed to create PWM thread");
+        pwm->running = 0;
+        return;
+    }
     pthread_detach(pwm->thread);
 }
 
@@ -70,19 +76,19 @@ static void run(PWM *pwm) {
 static int init(PWM *pwm, const char *chip_name, int line_number) {
     pwm->chip = gpiod_chip_open(chip_name);
     if (!pwm->chip) {
-        perror("Failed to open GPIO chip");
+        LOG_PERROR("Failed to open GPIO chip");
         return -1;
     }
 
     pwm->line = gpiod_chip_get_line(pwm->chip, line_number);
     if (!pwm->line) {
-        perror("Failed to get GPIO line");
+        LOG_PERROR("Failed to get GPIO line");
         gpiod_chip_close(pwm->chip);
         return -1;
     }
 
     if (gpiod_line_request_output(pwm->line, "pwm", 0) < 0) {
-        perror("Failed to request line as output");
+        LOG_PERROR("Failed to request line as output");
         gpiod_chip_close(pwm->chip);
         return -1;
     }

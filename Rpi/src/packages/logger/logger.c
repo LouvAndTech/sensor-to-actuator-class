@@ -7,10 +7,15 @@
 #include <time.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <stdarg.h>
+#include <pthread.h>
+
+
 
 #define DIR_PATH "./logs"
 #define BASE_FILENAME "log_"
 
+static pthread_mutex_t logger_mutex = PTHREAD_MUTEX_INITIALIZER;
 const char* LOG_LEVEL_STRINGS[] = {
     "DEBUG", 
     "INFO", 
@@ -22,14 +27,14 @@ const char* LOG_LEVEL_STRINGS[] = {
 static void create_log_directory();
 static FILE* create_log_file(const char* filename);
 
-#include <stdarg.h>
-
 // Public functions
 void logger_log(LOG_LEVEL level, const char* format, ...) {
     if (level < DEBUG || level > ERROR) {
         fprintf(stderr, "Invalid log level: %d\n", level);
         return;
     }
+
+    pthread_mutex_lock(&logger_mutex);
 
     // Create the log directory if it doesn't exist
     create_log_directory();
@@ -39,6 +44,7 @@ void logger_log(LOG_LEVEL level, const char* format, ...) {
     snprintf(filename, sizeof(filename), "%s%s.txt", BASE_FILENAME, LOG_LEVEL_STRINGS[level]);
     FILE* file = create_log_file(filename);
     if (file == NULL) {
+        pthread_mutex_unlock(&logger_mutex);
         return;
     }
 
@@ -59,6 +65,8 @@ void logger_log(LOG_LEVEL level, const char* format, ...) {
     fprintf(file, "[%s] [%s] %s\n", timestamp, LOG_LEVEL_STRINGS[level], message);
     fflush(file); // Ensure the message is written immediately
     fclose(file); // Close the file
+
+    pthread_mutex_unlock(&logger_mutex);
 }
 
 // Private function to create the log directory if it doesn't exist

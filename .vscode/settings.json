@@ -6,6 +6,7 @@
         "wiringserial.h": "c",
         "wiringpi.h": "c",
         "string.h": "c",
-        "types.h": "c"
+        "types.h": "c",
+        "logger.h": "c"
     }
 }

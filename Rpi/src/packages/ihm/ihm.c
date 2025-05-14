@@ -6,6 +6,8 @@
 #include "../uart/uart.h"
 #include "../automatic/automatic.h"
 
+#include "../../utils.h"
+
 
 #define MAX_MESSAGE_LENGTH 100
 
@@ -56,7 +58,7 @@ void ihm_menu(UART* uart) {
                     printf("\nLast received value: %s\n", last_received_message);
                 } else {
                     if (bytes_received == -1) {
-                        fprintf(stderr, "Error receiving message from UART\n");
+                        LOG_ERROR("Error receiving message from UART");
                     } else if (bytes_received == 0) {
                         printf("No new message received.\n");
                     }
@@ -80,7 +82,7 @@ void ihm_menu(UART* uart) {
                     if (uart_send_message(uart, command, strlen(command)) == 0) {
                         printf("\nCommand sent successfully: %s", command);
                     } else {
-                        fprintf(stderr, "Error sending command to UART\n");
+                        LOG_ERROR("Error sending command to UART");
                     }
                 }
                 break;

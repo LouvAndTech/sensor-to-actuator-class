@@ -15,4 +15,5 @@ typedef enum {
  */
 void logger_log(LOG_LEVEL level, const char* format, ...);
 
+
 #endif // LOGGER_H
