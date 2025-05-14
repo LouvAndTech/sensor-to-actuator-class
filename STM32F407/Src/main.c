@@ -29,7 +29,6 @@
 #include "ultra_sonic.h"
 #include "leds.h"
 #include "servo.h"
-#include "button.h"
 #include "serial.h"
 #include "string.h"
 /* USER CODE END Includes */
@@ -52,10 +51,15 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-volatile uint8_t rxFlag = 0;    // flag levé à chaque réception
-uint8_t rxChar;                 // caractère reçu par interruption
-uint8_t servoCommand = 0;       // valeur à envoyer au servo (0–100)
-uint8_t distance = 0;          // distance mesurée par l'ultrason
+/* USER CODE BEGIN PV */
+uint8_t rxData[10];
+volatile uint8_t rxFlag = 0;  // Indique la réception complète d'une trame UART
+char buffer[10];
+#define CMD_BUF_SIZE 32
+uint8_t  rxChar;
+char     cmdBuf[CMD_BUF_SIZE];
+uint8_t  cmdLen = 0;
+float distance;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -88,14 +92,6 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  typedef enum
-  {
-    MODE_1 = 0,
-    MODE_2,
-    END_MODE,
-  } State_e;
-
-  State_e state = MODE_1; 
 
   /* USER CODE END Init */
 
@@ -115,17 +111,9 @@ int main(void)
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
   // Test the UART
-  HAL_UART_Transmit(&huart3, (uint8_t *)"Program Start :\r\n", 13, HAL_MAX_DELAY);
+  HAL_UART_Transmit(&huart2, (uint8_t *)"Program Start :\r\n", 13, HAL_MAX_DELAY);
+  HAL_UART_Receive_IT(&huart2, &rxChar, 1);
 
-
-  // Initialized the LEDs
-  LEDS_Init();
-  // Initialize the ultrasonic sensor
-  ULTRA_SONIC_Init();
-  // Initialize the servo motor
-  SERVO_Init();
-  // Initialize the button
-  BUTTON_Init();
   //
   SERIAL_Init();
 
@@ -136,15 +124,10 @@ int main(void)
 /* USER CODE BEGIN 2 */
 
 // Initialisation des composants
-HAL_UART_Transmit(&huart3, (uint8_t *)"Program Start:\r\n", 16, HAL_MAX_DELAY);
 LEDS_Init();
 ULTRA_SONIC_Init();
 SERVO_Init();
-BUTTON_Init();
 SERIAL_Init();
-
-// Démarrage des interruptions UART3 en réception
-
 HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
 
 // Timer pour envoyer toutes les 250 ms
@@ -165,39 +148,43 @@ while (1)
         distance = ULTRA_SONIC_GetDistance();
         if (distance > 100) distance = 100;
 
-        // Envoi sensor:[000-100] par uart3
-        uint8_t distance_byte = (uint8_t)distance; // Convertir la distance en un octet
-        HAL_UART_Transmit(&huart3, &distance_byte, 1, HAL_MAX_DELAY); // Envoyer un seul octet
-        
-        LEDS_SetBlue();
+        // Envoie distance sur UART
+        sprintf(buffer, "sensor:%03d\n", (int)distance);
+        SERIAL_SendString(buffer);
+        HAL_UART_Transmit(&huart2, (uint8_t*)buffer, strlen(buffer), HAL_MAX_DELAY);
+
+        LEDS_SetBlue(); // Indique l'activité
     }
 
     // Traitement de la commande reçue (non bloquant)
     if (rxFlag)
     {
-        rxFlag = 0;  // on consomme le flag
+        rxFlag = 0;
 
-        // si la valeur est un pourcentage valide (0–100)
-        if (servoCommand <= 100)
+        // Parsing « servo:XX »
+        if (strncmp(cmdBuf, "servo:", 6) == 0)
         {
-            // on bouge le servomoteur
-            SERVO_set_servo_percentage(servoCommand);
-
-            // (optionnel) on renvoie un accusé simple
-            //HAL_UART_Transmit(&huart3, &servoCommand, 1, HAL_MAX_DELAY);
+            int pct = atoi(cmdBuf + 6);
+            if (pct >= 0 && pct <= 100)
+            {
+                SERVO_set_servo_percentage(pct);
+                HAL_UART_Transmit(&huart3, (uint8_t *)"Servo moved\r\n", 13, HAL_MAX_DELAY);
+            }
+            else
+            {
+                HAL_UART_Transmit(&huart3, (uint8_t *)"Pct invalide (0-100)\r\n", 21, HAL_MAX_DELAY);
+            }
         }
         else
         {
-            // valeur hors plage : on notifie l’erreur
-            const char *msg = "Err\r\n";
-            HAL_UART_Transmit(&huart3, (uint8_t *)msg, strlen(msg), HAL_MAX_DELAY);
+            HAL_UART_Transmit(&huart3, (uint8_t *)"Cmd invalide\r\n", 14, HAL_MAX_DELAY);
         }
     }
 }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-  }
+}
   /* USER CODE END 3 */
 
 
@@ -251,19 +238,29 @@ void SystemClock_Config(void)
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-    if (huart->Instance == USART3)  // on ne gère que l’UART3
+    if (huart->Instance == USART2)
     {
-        // on stocke directement le pourcentage reçu
-        servoCommand = rxChar;
-        rxFlag = 1;
 
-        // on réarme tout de suite l’interruption pour le prochain octet
-        HAL_UART_Receive_IT(&huart3, &rxChar, 1);
+        // Afficher caractère par caractère
+        HAL_UART_Transmit(&huart2, &rxChar, 1, HAL_MAX_DELAY);
+        // Stocke dans le tampon
+        if (cmdLen < CMD_BUF_SIZE-1)
+            cmdBuf[cmdLen++] = rxChar;
+
+        // Si fin de ligne, on lève le flag
+        if (rxChar == '\n' || rxChar == '\r')
+        {
+            cmdBuf[cmdLen] = '\0';
+            rxFlag = 1;
+            cmdLen  = 0;
+        }
+
+        HAL_UART_Transmit(&huart3, (uint8_t *)"Received: ", 10, HAL_MAX_DELAY);
+        HAL_UART_Transmit(&huart3, (uint8_t *)cmdBuf, strlen(cmdBuf), HAL_MAX_DELAY);
+        // Réarme tout de suite la réception
+        HAL_UART_Receive_IT(huart, &rxChar, 1);
     }
 }
-
-
-
 
 /* USER CODE END 4 */
 
@@ -297,4 +294,5 @@ void assert_failed(uint8_t *file, uint32_t line)
      ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
 }
+
 #endif /* USE_FULL_ASSERT */
