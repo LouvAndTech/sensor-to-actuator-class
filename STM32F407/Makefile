@@ -70,7 +70,6 @@ C_SOURCES +=  \
 Src/leds.c \
 Src/ultra_sonic.c \
 Src/servo.c \
-Src/button.c \
 Src/serial.c \
 
 

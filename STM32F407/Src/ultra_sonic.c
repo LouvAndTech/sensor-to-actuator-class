@@ -18,18 +18,6 @@ void gpio_echo_Callback(void);
 void send_trigger_pulse(void);
 
 /**
- * @brief Initialize the DWT (Data Watchpoint and Trace) for microsecond delays
- */
-void DWT_Init(void)
-{
-    if (!(CoreDebug->DEMCR & CoreDebug_DEMCR_TRCENA_Msk)) {
-        CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk; // Enable TRC
-        DWT->CYCCNT = 0;                               // Reset the cycle counter
-        DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;           // Enable the cycle counter
-    }
-}
-
-/**
  * @brief Delay for a specified number of microseconds
  * @param us Number of microseconds to delay
  */
