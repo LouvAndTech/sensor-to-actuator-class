@@ -1,0 +1,21 @@
+\section{Utilisation de l'app}
+
+\subsection{Compilation et utiliseation sur la Raspberry Pi}
+    Nous utilison la cross compilation pour compiler le code pour la Raspberry Pi.
+    
+    Une fois les dépendance GCC et Rsync installé, il faut setupe le ".env" à partir du ".env-template" fourni dans le projet.
+    Pui il faut utiliser les commandes suivantes:
+    \begin{lstlisting}[language=bash]
+        make sync-sysroot
+        make 
+        make remote-copy
+    \end{lstlisting}
+
+    Ensuite il faut acceder en SSH à la Raspberry Pi et executer le binaire:
+    \begin{lstlisting}[language=bash]
+        make remote-ssh
+        cd /home/pi/cross-compile
+        ./<Nom_de_l_executable_setup_dans_env>
+    \end{lstlisting}
+
+    Après l'execution vous pourrez constater les Log dans le dossier log situé dans le dossier d'éxécution.
