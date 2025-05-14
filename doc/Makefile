@@ -1,5 +1,5 @@
 LATEX = pdflatex
-PLANTUML = java -jar ../.devcontainer/plantuml.jar
+PLANTUML = java -jar ../.devcontainer/Latex/plantuml.jar
 
 SRC_DIR = src
 BUILD_DIR = build

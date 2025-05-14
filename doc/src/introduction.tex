@@ -1,23 +1,28 @@
 \section{Introduction}
 \subsection{Contexte}
-Dans le cadre de notre formation, nous avons développé un système embarqué utilisant un microcontrôleur STM32F411RE. Ce mini-projet a consisté à mettre en place un système capable de mesurer des distances à l'aide d'un capteur ultrasonique HC-SR04 et de contrôler un servomoteur en fonction de cette distance ou d'une consigne reçue par liaison série.
+Dans le cadre de notre formation, nous avons développé un système embarqué utilisant un microcontrôleur STM32F411RE et une RaspberryPi 3b+.
 
 \subsection{Objectif}
-L'objectif principal était de développer un système fonctionnel capable de :
+L'objectif principal était de développer un système fonctionne incluant une STM32 et une RaspberryPi.
+Le système est capable de :
+\begin{itemize}
+    \item Retourner la distance mesurée par le capteur ultrasonique HC-SR04 sur une interface de commande sur la Raspberry Pi.
+    \item Controler le servomoteur connecté sur la STM32 depuis une interface de commande sur la Raspberry Pi.
+    \item De controler en automatique les deux servomoteurs en fonction de la distance mesurée par le capteur ultrasonique au travers d'un calcul réalisé sur la RaspberryPi.
+\end{itemize}
+
+Pour cela, la STM32 doit être configurée pour :
 \begin{itemize}
     \item Mesurer une distance avec le capteur HC-SR04 toutes les 250 ms
-    \item Basculer entre deux modes de fonctionnement via un bouton-poussoir ou commande série
-    \item Mode 1 : Commander un servomoteur proportionnellement à la distance mesurée (entre 5 et 25 cm)
-    \item Mode 2 : Commander le servomoteur via des consignes reçues par la liaison série
-    \item Communiquer les informations de distance via la liaison série toutes les secondes
+    \item Communiquer les informations de distance via la liaison série toutes les 250 ms
+    \item Recevoir une consigne de position pour le servomoteur via la liaison série et l'appliquer au servomoteur
 \end{itemize}
 
-\subsection{Méthodologie}
-Pour ce projet, nous avons adopté une approche modulaire basée sur le pattern Singleton. Nous avons développé trois modules principaux :
+Et la Raspberry Pi doit être configurée pour :
 \begin{itemize}
-    \item Module pour la gestion du capteur HC-SR04
-    \item Module pour la gestion du servomoteur
-    \item Module pour la communication série
+    \item Recevoir la distance mesurée par la STM32 via la liaison série
+    \item Envoyer une consigne de position pour le servomoteur à la STM32 via la liaison série
+    \item Calculer la position de son servomoteur en fonction de la distance mesurée par le capteur ultrasonique
+    \item Envoyer la position calculée au servomoteur de la STM32 via la liaison série
 \end{itemize}
 
-Cette approche nous a permis de séparer clairement les responsabilités et de faciliter l'intégration des différents composants.

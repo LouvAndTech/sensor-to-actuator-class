@@ -1,7 +1,7 @@
 \section{Brochage des différents éléments}
-\subsection{Brochage des différents éléments}
+\subsection{STM43F407}
 
-\begin{table}[h!]
+\begin{table}[H]
 \centering
 \begin{tabular}{|l|l|l|}
 \hline
@@ -20,7 +20,22 @@ Communication série UART          & USART2\_TX              & Pin PA2 - Transmi
 Bouton poussoir                   & PA0\_WKUP               & Pin PA0 - Interruption externe (EXTI) \\ \hline
 \end{tabular}
 \caption{Brochage des différents éléments}
-\label{tab:brochage}
+\label{tab:brochage_stm}
 \end{table}
 
-
+\subsection{Raspberry Pi 3b+}
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Élément}                & \textbf{Broche peripherique}      &\textbf{Broche Rpi}            & \textbf{Description}      \\ \hline
+Servomoteur                     & VCC                               & VDC Power                     & Alimentation 5V           \\ \hline
+                                & GND                               & Ground                        & Masse                     \\ \hline
+                                & SIGNAL                            & Pin 32 | GPIO 26              & Signal PWM                \\ \hline
+STM43F407                       & PA3                               & Pin 8  | GPIO 15              & TX Rpi - RX STM           \\ \hline
+                                & PA2                               & Pin 9  | GPIO 16              & RX Rpi - TX STM           \\ \hline
+                                & GND                               & Ground                        & Masse                     \\ \hline
+\end{tabular}
+\caption{Brochage des peripherique de la carte Raspberry Pi 3b+}
+\label{tab:brochage_rpi}
+\end{table}

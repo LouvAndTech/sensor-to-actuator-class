@@ -1,0 +1,164 @@
+\section{Configuration de la Raspberry Pi}
+
+\subsection{Control du servomoteur}
+
+    Le servomoteur est contrôlé par un signal PWM généré manuellement au travers de la librairy "gpiod".
+
+    Pour wrapper cette librairie, nous avons créer un object "pwm" multiinstance.
+
+    Ce module prend en entrée lors de son initialisation le nom du chip GPIO et le numéro de la ligne à utiliser pour la génération du signal PWM. Voici un exemple d'interface en C pour ce module :
+
+    \begin{lstlisting}[language=C, caption={Interface du module PWM}, label={lst:pwmheader}]
+        #ifndef PWM_H
+        #define PWM_H
+
+        typedef struct PWM_s PWM;
+
+        PWM* pwm_new(const char *chip_name, int line_number);
+        void pwm_set_duty_cycle(PWM *pwm, float duty_cycle_percent);
+        void pwm_start(PWM *pwm);
+        void pwm_stop(PWM *pwm);
+        void pwm_free(PWM *pwm);
+
+        #endif // PWM_H
+    \end{lstlisting}
+
+    L'utilisation de ce module permet de créer plusieurs instances PWM indépendantes, chacune associée à un GPIO spécifique. Cela facilite le contrôle de plusieurs servomoteurs ou autres périphériques nécessitant un signal PWM.
+
+\subsection{Gestion de la liaison série}
+
+    La gestion de la liaison série sur le Raspberry Pi est assurée par un module dédié, dont l'interface est définie dans le fichier \texttt{uart.h}. Ce module permet d'ouvrir, de configurer et de gérer la communication série de manière asynchrone, en utilisant des files de messages POSIX pour la réception et l'émission.
+
+    \begin{lstlisting}[language=C, caption={Interface du module UART}, label={lst:uartheader}]
+        #ifndef UART_H
+        #define UART_H
+
+        #include <stdlib.h>
+        #include <stdio.h>
+
+        typedef struct UART_t UART;
+
+        typedef struct {
+            const char* device;     ///< The device name (e.g., "/dev/ttyS0").
+            int baud;               ///< The baud rate for the UART communication.
+            char end_line;          ///< The end line character for the UART communication.
+            int message_max_length; ///< The maximum length of the message to be received.
+            int timeout;           ///< The timeout for the UART communication.
+        }UART_param;
+
+        UART* uart_new(UART_param* param);
+        int uart_free(UART* uart);
+        int uart_start(UART* uart);
+        int uart_stop(UART* uart);
+        int uart_is_enabled(UART* uart);
+        int uart_get_message(UART* uart, char* buffer);
+        int uart_send_message(UART* uart, const char* message, size_t length);
+        int uart_get_buffer_length(UART* uart);
+
+
+        #endif // UART_H
+    \end{lstlisting}
+
+    Le module UART permet de gérer la communication série de façon asynchrone et robuste. Pour l'utiliser, il faut d'abord configurer une structure de paramètres (\texttt{UART\_param}) où l'on précise :
+    \begin{itemize}
+        \item le nom du périphérique série (par exemple \texttt{/dev/ttyS0}),
+        \item le débit (\textit{baudrate}),
+        \item le caractère de fin de ligne,
+        \item la taille maximale des messages,
+        \item le timeout de lecture.
+    \end{itemize}
+
+    L'initialisation se fait en appelant une fonction qui crée une instance UART et met en place deux files de messages POSIX : une pour la réception (RX), une pour l'émission (TX). Ensuite, un thread dédié est lancé pour gérer la lecture et l'écriture sur le port série. Les messages reçus sont stockés dans la file RX, tandis que ceux à envoyer sont placés dans la file TX.
+
+    Pour envoyer un message, il suffit d'appeler la fonction d'envoi avec le message et sa longueur. Pour recevoir, une fonction permet de récupérer le prochain message reçu, si disponible. D'autres fonctions permettent de démarrer ou d'arrêter la communication, de vérifier si le module est actif, ou encore de libérer les ressources associées. 
+
+    Lorsque la file de réception est pleine, le module jette le plus ancien message pour faire de la place pour le nouveau. 
+
+    Ce module est conçu pour être utilisé dans des applications embarquées, c'est pour sela qu'il se concentre sur la simplicité et la rapidité d'intégration. Il permet également de gérer plusieurs instances en parallèle, ce qui le rend adapté à des systèmes nécessitant plusieurs liaisons série.
+
+    \vspace{0.5em}
+    \noindent
+    \textbf{Résumé des fonctionnalités~:}
+    \begin{itemize}
+        \item Gestion multi-instance de la communication série
+        \item Utilisation de files de messages POSIX pour RX/TX
+        \item Thread dédié pour la gestion asynchrone
+        \item Interface simple pour l'envoi et la réception de messages
+    \end{itemize}
+
+\subsection{Gestion de l'interface utilisateur}
+
+    L'interface utilisateur (IHM) du système est assurée par un module dédié, permettant à l'utilisateur d'interagir avec la Raspberry Pi via un terminal. Ce module propose un menu textuel simple pour consulter les valeurs reçues, envoyer des commandes ou activer un mode automatique.
+
+    Ce module est bloquant.
+
+    L'interface est implémentée dans le fichier \texttt{ihm.h} et son implémentation dans \texttt{ihm.c}. Elle s'appuie sur le module UART pour la communication série, ce qui permet d'envoyer et de recevoir des messages avec les autres composants du système.
+
+    \begin{lstlisting}[language=C, caption={Interface du module IHM}, label={lst:ihmheader}]
+        #ifndef IHM_H
+        #define IHM_H
+
+        #include "../uart/uart.h"
+
+        void ihm_menu(UART* uart);
+
+        #endif // IHM_H
+    \end{lstlisting}
+
+    Le menu principal, accessible via la fonction \texttt{ihm\_menu}, propose les actions suivantes~:
+    \begin{itemize}
+        \item Afficher la dernière valeur reçue via l'UART,
+        \item Envoyer une nouvelle valeur pour piloter le servomoteur de la STM32,
+        \item Démarrer ou arrêter le mode automatique,
+        \item Quitter l'interface.
+    \end{itemize}
+
+    L'utilisateur navigue dans le menu en saisissant le numéro correspondant à l'action souhaitée. Les entrées sont vérifiées pour éviter les erreurs de saisie. Lors de l'envoi d'une nouvelle valeur, la saisie est bornée entre 0 et 100, puis transmise sous forme de commande formatée à l'autre extrémité de la liaison série.
+
+    Le mode automatique peut être activé ou désactivé directement depuis l'interface. Pendant ce mode, le contrôle manuel est temporairement désactivé jusqu'à ce que l'utilisateur choisisse de revenir au menu principal.
+
+    \vspace{0.5em}
+    \noindent
+    \textbf{Résumé des fonctionnalités~:}
+    \begin{itemize}
+        \item Menu interactif en ligne de commande
+        \item Consultation des messages reçus via UART
+        \item Envoi de commandes formatées à destination au servomoteur
+        \item Activation/désactivation du mode automatique
+        \item Gestion robuste des entrées utilisateur
+    \end{itemize}
+
+\subsection{Mode automatique}
+
+    Le mode automatique permet de piloter le système sans intervention manuelle, en déléguant la génération des commandes à un module dédié. 
+
+    L'activation et la désactivation du mode automatique se font via l'interface utilisateur (voir section précédente). Lorsque ce mode est actif, le contrôle manuel est temporairement désactivé, et le module automatique prend la main sur l'envoi des commandes au servomoteur via la liaison UART.
+
+    L'implémentation du mode automatique repose sur un module spécifique, défini dans les fichiers \texttt{automatic.h} et \texttt{automatic.c}. Ce module propose une interface simple pour démarrer et arrêter le mode automatique, via les fonctions suivantes~:
+
+    \begin{lstlisting}[language=C, caption={Interface du module automatique}, label={lst:automaticheader}]
+        #ifndef AUTOMATIC_H
+        #define AUTOMATIC_H
+
+        void automatic_start(void);
+
+        void automatic_stop(void);
+
+        #endif // AUTOMATIC_H
+    \end{lstlisting}
+
+    Lors de l'activation, le module peut lancer un thread ou une boucle dédiée qui envoie périodiquement des commandes formatées à la STM32 ou à d'autres actionneurs, selon une logique prédéfinie (par exemple, balayage de valeurs, réponses à des événements, etc.). L'utilisateur peut à tout moment interrompre ce mode pour reprendre la main via l'interface utilisateur.
+
+    \vspace{0.5em}
+    \noindent
+    \textbf{Résumé des fonctionnalités~:}
+    \begin{itemize}
+        \item Activation/désactivation du mode automatique depuis l'IHM
+        \item Génération autonome des commandes vers les actionneurs
+        \item Intégration transparente avec la gestion UART et l'interface utilisateur
+        \item Possibilité de repasser en mode manuel à tout moment
+    \end{itemize}
+
+\subsection{Gestion des LOG}
+    Nous avons aussi développé un module de gestion des logs, permettant de suivre l'activité du système et de déboguer facilement. Ce module est défini dans les fichiers \texttt{log.h} et \texttt{log.c}.
+    Il permet de sauvegarder les logs dans un fichier texte sur la carte SD de la Raspberry Pi.
