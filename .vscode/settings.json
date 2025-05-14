@@ -5,6 +5,7 @@
         "pwm.h": "c",
         "wiringserial.h": "c",
         "wiringpi.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "types.h": "c"
     }
 }

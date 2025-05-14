@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include "../../libs/arduino-serial-lib/arduino-serial-lib.h"
+#include "../logger/logger.h"
 
 
 #define MQ_MSG_MAX (10)
@@ -258,7 +259,7 @@ static void run_uart(UART* uart){
             //fprintf(stderr, "Timeout occurred while reading from UART\n");
         } else if (err == 0) {
             
-            //printf("Received: %s\n", buffer);
+            //printf("Received: %s\n", buffer_rx);
             if (mq_send(uart->message_queue_rx, buffer_rx, strlen(buffer_rx), 0) == -1) {
                 if (errno == EAGAIN) {
                     // Queue is full
@@ -267,6 +268,8 @@ static void run_uart(UART* uart){
                     ssize_t mq_received = mq_receive(uart->message_queue_rx, temp_buffer, sizeof(temp_buffer), NULL);
                     if (mq_received >= 0) {
                         // Successfully read a message from the queue
+                        // Log the dropped message
+                        logger_log(INFO, "Message dropped from queue rx : %s", temp_buffer);
                         // Now send the new message
                         if (mq_send(uart->message_queue_rx, buffer_rx, strlen(buffer_rx), 0) == -1) {
                             perror("Error sending message to queue rx");
@@ -283,7 +286,8 @@ static void run_uart(UART* uart){
         // Write to the UART device
         ssize_t mq_received = mq_receive(uart->message_queue_tx, buffer_tx, sizeof(buffer_tx), NULL);
         if (mq_received >= 0) {
-            //fprintf(stdout,"\nsending: %s\n", buffer);
+            buffer_tx[mq_received] = '\0'; // Null-terminate the string
+            //fprintf(stdout,"\nsending: %s\n", buffer_tx);
             if (serialport_write(uart->serial_port, buffer_tx) == -1) {
                 fprintf(stderr, "Error writing to UART: %s\n", strerror(errno));
             }
