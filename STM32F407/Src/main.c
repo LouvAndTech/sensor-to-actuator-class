@@ -92,14 +92,6 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  typedef enum
-  {
-    MODE_1 = 0,
-    MODE_2,
-    END_MODE,
-  } State_e;
-
-  State_e state = MODE_1; 
 
   /* USER CODE END Init */
 
@@ -165,9 +157,6 @@ while (1)
     if (rxFlag)
     {
         rxFlag = 0;
-        // ÉCHO + DEBUG en polling, hors IRQ
-        HAL_UART_Transmit(&huart3, (uint8_t *)"Received: ", 10, HAL_MAX_DELAY);
-        HAL_UART_Transmit(&huart3, (uint8_t *)cmdBuf, strlen(cmdBuf), HAL_MAX_DELAY);
 
         // Parsing « servo:XX »
         if (strncmp(cmdBuf, "servo:", 6) == 0)
